@@ -1,21 +1,19 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from routers.auth import router as auth_router
-from routers.listings import router as listings_router
+from fastapi.responses import RedirectResponse
+from routers import auth, listings, prediction
 
 app = FastAPI()
 
-app.mount("/static",StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# Statik dosyaları (CSS, Resimler) tanıtıyoruz
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.include_router(auth_router)
-app.include_router(listings_router)
+# Router'ları (Modülleri) ana uygulamaya bağlıyoruz
+app.include_router(auth.router)
+app.include_router(listings.router)
+app.include_router(prediction.router)
 
 @app.get("/")
-async def root(request: Request):
-    return templates.TemplateResponse("listings/index.html", {"request": request, "title":"Ana Sayfa"})
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8080, reload=True)
+async def root():
+    # Siteye giren kişiyi direkt İlanlara atıyoruz (İstersen Login'e atabilirsin)
+    return RedirectResponse(url="/listings")

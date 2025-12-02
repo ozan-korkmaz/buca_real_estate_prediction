@@ -1,117 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="container py-5">
 
-<div class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-5 mb-lg-0 text-start">
-                <h1 class="hero-title mb-3">Hayalindeki Evi <br>Buca'da Bul.</h1>
-                <p class="mb-4 opacity-75 fs-5">Yapay zeka destekli fiyat tahmin sistemiyle evinizin gerçek değerini öğrenin veya en uygun yatırımı yapın.</p>
-                <a href="#ilanlar" class="btn btn-hero shadow-lg">
-                    İlanları Keşfet <i class="bi bi-arrow-right ms-2"></i>
-                </a>
-            </div>
-            <div class="col-lg-6">
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Buca Emlak" class="img-fluid hero-img">
-            </div>
+    <div class="row mb-5 align-items-end">
+        <div class="col-md-8">
+            <h6 class="text-primary fw-bold text-uppercase ls-1">Keşfet</h6>
+            <h1 class="fw-bold display-5 text-white">Buca Satılık İlanlar</h1>
+            <p class="text-muted mt-2" style="max-width: 500px;">
+                Yapay zeka destekli analizlerle bölgedeki en doğru fiyatlı ilanları sizin için listeliyoruz.
+            </p>
         </div>
-    </div>
-</div>
-
-<div class="container service-section">
-    <h6 class="text-success fw-bold text-uppercase ls-2">NELER YAPIYORUZ?</h6>
-    <h2 class="fw-bold mb-5">Hizmetlerimiz</h2>
-
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="service-card h-100 bg-white">
-                <div class="icon-box"><i class="bi bi-house-check"></i></div>
-                <h4 class="fw-bold mb-3">Satılık Mülkler</h4>
-                <p class="text-muted">Buca genelinde her bütçeye uygun satılık daire ve müstakil ev seçenekleri.</p>
-            </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="/listings/create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i> Yeni İlan Ekle
+            </a>
         </div>
-        <div class="col-md-4">
-            <div class="service-card h-100 bg-white">
-                <div class="icon-box"><i class="bi bi-key"></i></div>
-                <h4 class="fw-bold mb-3">Kiralık Daireler</h4>
-                <p class="text-muted">Öğrenciler ve aileler için en uygun konumda kiralık evler.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="service-card h-100 bg-white">
-                <div class="icon-box"><i class="bi bi-robot"></i></div>
-                <h4 class="fw-bold mb-3">Yapay Zeka Değerleme</h4>
-                <p class="text-muted">Makine öğrenmesi ile evinizin güncel piyasa değerini saniyeler içinde öğrenin.</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    <div class="search-banner shadow-lg">
-        <div class="row align-items-center">
-            <div class="col-lg-4 mb-4 mb-lg-0">
-                <h3 class="fw-bold mb-2">Hızlı Arama Yapın</h3>
-                <p class="small mb-0 opacity-75">Kriterlerinize en uygun evi bulun.</p>
-            </div>
-            <div class="col-lg-8">
-                <form class="row g-2">
-                    <div class="col-md-4">
-                        <select class="form-select search-form-control py-3">
-                            <option selected>Oda Sayısı Seçin</option>
-                            <option>1+1 Daire</option>
-                            <option>2+1 Daire</option>
-                            <option>3+1 Daire</option>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <select class="form-select search-form-control py-3">
-                            <option selected>Fiyat Aralığı</option>
-                            <option>1.5M ₺ - 2.5M ₺</option>
-                            <option>2.5M ₺ - 4.0M ₺</option>
-                            <option>4.0M ₺ ve üzeri</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-light text-success fw-bold w-100 py-3">ARA</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container mb-5 pb-5" id="ilanlar">
-    <div class="text-center mb-5">
-        <h6 class="text-success fw-bold text-uppercase">GÜNCEL PORTFÖY</h6>
-        <h2 class="fw-bold">Sizin İçin Seçtiklerimiz</h2>
     </div>
 
     <div class="row g-4">
         {% for listing in listings %}
         <div class="col-md-4 col-sm-6">
-            <div class="card listing-card h-100 border-0 shadow-sm">
-                <div class="card-img-wrapper position-relative">
-                    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=600&q=80" class="card-img-top" alt="Ev">
-                    <span class="badge bg-success position-absolute top-0 start-0 m-3 py-2 px-3">Satılık</span>
+            <div class="card h-100 shadow-sm border-0 listing-card overflow-hidden">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80" class="card-img-top" alt="Ev Görseli" style="height: 220px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-dark bg-opacity-75 backdrop-blur">Satılık</span>
+                    </div>
                 </div>
 
                 <div class="card-body p-4">
-                    <h5 class="listing-price text-success mb-2 fw-bold">{{ listing.price }} ₺</h5>
-                    <h6 class="fw-bold text-dark mb-2">{{ listing.title }}</h6>
-                    <p class="text-muted small mb-3"><i class="bi bi-geo-alt-fill me-1"></i> {{ listing.location }}</p>
+                    <h5 class="fw-bold text-primary mb-1">{{ listing.price }} ₺</h5>
+                    <h6 class="fw-bold text-white mb-3 text-truncate">{{ listing.title }}</h6>
 
-                    <div class="d-flex justify-content-between border-top pt-3 mt-3">
-                        <span class="small text-muted"><i class="bi bi-door-open me-1"></i> 3+1</span>
-                        <span class="small text-muted"><i class="bi bi-rulers me-1"></i> 120m²</span>
-                        <span class="small text-muted"><i class="bi bi-layers me-1"></i> 3. Kat</span>
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-geo-alt-fill me-1 text-primary"></i> {{ listing.location }}
+                    </p>
+
+                    <div class="d-flex justify-content-between pt-3 border-top border-secondary border-opacity-25">
+                        <span class="small text-muted"><i class="bi bi-door-open me-1"></i> {{ listing.rooms }}</span>
+                        <span class="small text-muted"><i class="bi bi-rulers me-1"></i> {{ listing.area }}m²</span>
+                        <span class="small text-muted"><i class="bi bi-layers me-1"></i> {{ listing.floor }}. Kat</span>
                     </div>
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted opacity-25"></i>
+            <p class="mt-3 text-muted">Henüz yayınlanmış bir ilan bulunmuyor.</p>
+        </div>
         {% endfor %}
     </div>
 </div>
-
 {% endblock %}

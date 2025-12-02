@@ -1,159 +1,120 @@
 :root {
-    --primary-green: #0F7956;  /* Tasarımdaki Koyu Yeşil */
-    --light-green: #e8f5e9;
-    --text-dark: #1F2937;
-    --text-gray: #6B7280;
+    /* --- RENK PALETİ --- */
+    --bg-body: #0F111A;         /* Ana Arka Plan (Derin Siyah) */
+    --bg-card: #1E2130;         /* Kart Arka Planı (Koyu Gri-Mavi) */
+    --bg-input: #2D3246;        /* Input Kutuları */
+
+    --primary-color: #818CF8;   /* Ana Renk (Parlak İndigo) */
+    --primary-hover: #6366F1;
+
+    /* --- KRİTİK: YAZI RENKLERİ --- */
+    --text-main: #FFFFFF;       /* Ana Başlıklar (Bembeyaz) */
+    --text-body: #E2E8F0;       /* Normal Yazılar (Çok Açık Gri) */
+    --text-muted: #ececec;      /* Silik Yazılar (Orta Gri - Okunabilir!) */
+    --border-color: #374151;
 }
 
+/* 1. GENEL AYARLAR (Her şeyi zorla açık renk yap) */
 body {
+    background-color: var(--bg-body);
+    color: var(--text-body) !important; /* Bootstrap'i eziyoruz */
     font-family: 'Poppins', sans-serif;
-    color: var(--text-dark);
-    background-color: #ffffff;
 }
 
-/* NAVBAR */
+/* 2. BAŞLIKLAR (H1-H6) */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    color: var(--text-main) !important;
+    font-weight: 600;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+.text-dark {
+    color: var(--text-main) !important;
+}
+.text-secondary {
+    color: var(--text-muted) !important;
+}
+.text-body {
+    color: var(--text-body) !important;
+}
+
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.card-title, .card-header {
+    color: var(--text-main);
+}
+.card-text {
+    color: var(--text-body);
+}
+
+
+.form-control, .form-select, textarea {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important; /* Yazılan yazı beyaz olsun */
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-input) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 0 0 0.25rem rgba(129, 140, 248, 0.25);
+}
+
+/* 6. NAVBAR */
 .navbar {
-    background-color: var(--primary-green);
-    padding: 1rem 0;
+    background-color: rgba(15, 17, 26, 0.95) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+.navbar-brand {
+    color: var(--text-main) !important;
+}
+.nav-link {
+    color: var(--text-body) !important;
+    opacity: 0.8;
+}
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-color) !important;
+    opacity: 1;
 }
 
-.navbar-brand, .nav-link {
-    color: white !important;
-}
-
-.btn-login {
-    background-color: white;
-    color: var(--primary-green);
-    font-weight: 600;
-    border-radius: 5px;
-    padding: 8px 25px;
-}
-
-/* HERO SECTION (Yeşil Alan) */
-.hero-section {
-    background-color: var(--primary-green);
-    color: white;
-    padding: 80px 0 100px 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.hero-title {
-    font-size: 3.5rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 20px;
-}
-
-.hero-img {
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    border: 5px solid rgba(255,255,255,0.1);
-}
-
-.btn-hero {
-    background-color: white;
-    color: var(--primary-green);
-    font-weight: 600;
-    padding: 12px 30px;
-    border-radius: 5px;
+/* 7. BUTONLAR */
+.btn-primary {
+    background-color: var(--primary-color);
     border: none;
-}
-
-/* LAYANAN KAMI (Hizmetler) */
-.service-section {
-    padding: 80px 0;
-    text-align: center;
-}
-
-.service-card {
-    padding: 30px;
-    border-radius: 15px;
-    transition: 0.3s;
-    border: 1px solid #eee;
-}
-
-.service-card:hover {
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    transform: translateY(-5px);
-}
-
-.icon-box {
-    font-size: 2.5rem;
-    color: var(--primary-green);
-    margin-bottom: 20px;
-}
-
-/* SEARCH SECTION (Yeşil Arama Bandı) */
-.search-banner {
-    background-color: #2D9F75; /* Biraz daha açık yeşil */
-    border-radius: 20px;
-    padding: 40px;
     color: white;
-    margin: 50px 0;
+    font-weight: 500;
+    padding: 10px 20px;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+.btn-outline-light {
+    border-color: var(--border-color);
+    color: var(--text-body);
+}
+.btn-outline-light:hover {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    border-color: var(--text-main);
 }
 
-.search-form-control {
-    border: none;
-    border-radius: 8px;
-    padding: 12px;
+/* 8. LİNKLER */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
 }
-
-.btn-search {
-    background-color: var(--primary-green);
-    color: white;
-    font-weight: 600;
-    border-radius: 8px;
-    width: 100%;
-    padding: 12px;
-}
-
-/* LISTINGS (İlanlar) */
-.listing-card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-    overflow: hidden;
-    transition: 0.3s;
-}
-
-.listing-card:hover {
-    transform: translateY(-5px);
-}
-
-.card-img-top {
-    height: 250px;
-    object-fit: cover;
-}
-
-.listing-price {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.listing-features span {
-    font-size: 0.9rem;
-    color: var(--text-gray);
-    margin-right: 15px;
-}
-
-/* FOOTER (İletişim Formu Kısmı) */
-.footer-cta {
-    background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
-    background-size: cover;
-    position: relative;
-    padding: 80px 0;
-}
-
-.footer-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.contact-card {
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
+a:hover {
+    color: var(--primary-hover);
 }
