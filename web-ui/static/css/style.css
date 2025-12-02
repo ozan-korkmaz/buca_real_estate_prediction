@@ -1,0 +1,159 @@
+:root {
+    --primary-green: #0F7956;  /* Tasarımdaki Koyu Yeşil */
+    --light-green: #e8f5e9;
+    --text-dark: #1F2937;
+    --text-gray: #6B7280;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-dark);
+    background-color: #ffffff;
+}
+
+/* NAVBAR */
+.navbar {
+    background-color: var(--primary-green);
+    padding: 1rem 0;
+}
+
+.navbar-brand, .nav-link {
+    color: white !important;
+}
+
+.btn-login {
+    background-color: white;
+    color: var(--primary-green);
+    font-weight: 600;
+    border-radius: 5px;
+    padding: 8px 25px;
+}
+
+/* HERO SECTION (Yeşil Alan) */
+.hero-section {
+    background-color: var(--primary-green);
+    color: white;
+    padding: 80px 0 100px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.hero-img {
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    border: 5px solid rgba(255,255,255,0.1);
+}
+
+.btn-hero {
+    background-color: white;
+    color: var(--primary-green);
+    font-weight: 600;
+    padding: 12px 30px;
+    border-radius: 5px;
+    border: none;
+}
+
+/* LAYANAN KAMI (Hizmetler) */
+.service-section {
+    padding: 80px 0;
+    text-align: center;
+}
+
+.service-card {
+    padding: 30px;
+    border-radius: 15px;
+    transition: 0.3s;
+    border: 1px solid #eee;
+}
+
+.service-card:hover {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transform: translateY(-5px);
+}
+
+.icon-box {
+    font-size: 2.5rem;
+    color: var(--primary-green);
+    margin-bottom: 20px;
+}
+
+/* SEARCH SECTION (Yeşil Arama Bandı) */
+.search-banner {
+    background-color: #2D9F75; /* Biraz daha açık yeşil */
+    border-radius: 20px;
+    padding: 40px;
+    color: white;
+    margin: 50px 0;
+}
+
+.search-form-control {
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.btn-search {
+    background-color: var(--primary-green);
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    width: 100%;
+    padding: 12px;
+}
+
+/* LISTINGS (İlanlar) */
+.listing-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.listing-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-img-top {
+    height: 250px;
+    object-fit: cover;
+}
+
+.listing-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.listing-features span {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    margin-right: 15px;
+}
+
+/* FOOTER (İletişim Formu Kısmı) */
+.footer-cta {
+    background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    position: relative;
+    padding: 80px 0;
+}
+
+.footer-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.contact-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+}
