@@ -22,25 +22,39 @@
         {% for listing in listings %}
         <div class="col-md-4 col-sm-6">
             <div class="card h-100 shadow-sm border-0 listing-card overflow-hidden">
-                <div class="position-relative">
-                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80" class="card-img-top" alt="Ev Görseli" style="height: 220px; object-fit: cover;">
-                    <div class="position-absolute top-0 end-0 m-3">
-                        <span class="badge bg-dark bg-opacity-75 backdrop-blur">Satılık</span>
+
+                <a href="/listings/{{ listing.id }}" class="text-decoration-none">
+                    <div class="position-relative">
+                        <img src="{{ listing.image_url if listing.image_url else 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80' }}"
+                             class="card-img-top" alt="Ev Görseli" style="height: 220px; object-fit: cover;">
+
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-dark bg-opacity-75 backdrop-blur">Satılık</span>
+                        </div>
                     </div>
-                </div>
+                </a>
 
                 <div class="card-body p-4">
                     <h5 class="fw-bold text-primary mb-1">{{ listing.price }} ₺</h5>
-                    <h6 class="fw-bold text-white mb-3 text-truncate">{{ listing.title }}</h6>
+
+                    <a href="/listings/{{ listing.id }}" class="text-decoration-none">
+                        <h6 class="fw-bold text-white mb-3 text-truncate">{{ listing.title }}</h6>
+                    </a>
 
                     <p class="small text-muted mb-3">
                         <i class="bi bi-geo-alt-fill me-1 text-primary"></i> {{ listing.location }}
                     </p>
 
                     <div class="d-flex justify-content-between pt-3 border-top border-secondary border-opacity-25">
-                        <span class="small text-muted"><i class="bi bi-door-open me-1"></i> {{ listing.rooms }}</span>
-                        <span class="small text-muted"><i class="bi bi-rulers me-1"></i> {{ listing.area }}m²</span>
-                        <span class="small text-muted"><i class="bi bi-layers me-1"></i> {{ listing.floor }}. Kat</span>
+                        <span class="small text-muted">
+                            <i class="bi bi-door-open me-1"></i> {{ listing.room_count }}
+                        </span>
+                        <span class="small text-muted">
+                            <i class="bi bi-rulers me-1"></i> {{ listing.net_area }} m²
+                        </span>
+                        <span class="small text-muted">
+                            <i class="bi bi-layers me-1"></i> {{ listing.floor }}. Kat
+                        </span>
                     </div>
                 </div>
             </div>
