@@ -3,3 +3,4 @@ bin/
 obj/
 .idea/
 /web-ui/.idea
+*.xml
