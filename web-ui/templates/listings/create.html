@@ -12,7 +12,7 @@
             <div class="card border-0 shadow-lg">
                 <div class="card-body p-4 p-md-5">
                     <form method="post" action="/listings/create">
-                        <h5 class="text-primary fw-bold mb-4">İlan Bilgileri</h5>
+                        <h5 class="text-primary fw-bold mb-4">Temel Bilgiler</h5>
 
                         <div class="mb-4">
                             <label class="form-label text-muted small fw-bold">İLAN BAŞLIĞI</label>
@@ -22,40 +22,75 @@
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label text-muted small fw-bold">FİYAT (₺)</label>
-                                <input type="number" name="price" class="form-control form-control-lg" required>
+                                <input type="number" name="price" class="form-control form-control-lg"
+                                       value="{{ prefill.price if prefill and prefill.price else '' }}" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted small fw-bold">KONUM / MAHALLE</label>
                                 <select name="location" class="form-select form-select-lg">
-                                    <option value="Buca Merkez">Buca Merkez</option>
-                                    <option value="Şirinyer">Şirinyer</option>
-                                    <option value="Tınaztepe">Tınaztepe</option>
-                                    <option value="Yıldız">Yıldız</option>
+                                    <option value="">Seçiniz...</option>
+                                    <option value="Buca Merkez" {% if prefill and prefill.location == 'Buca Merkez' %}selected{% endif %}>Buca Merkez</option>
+                                    <option value="Şirinyer" {% if prefill and prefill.location == 'Şirinyer' %}selected{% endif %}>Şirinyer</option>
+                                    <option value="Tınaztepe" {% if prefill and prefill.location == 'Tınaztepe' %}selected{% endif %}>Tınaztepe</option>
+                                    <option value="Yıldız" {% if prefill and prefill.location == 'Yıldız' %}selected{% endif %}>Yıldız</option>
+                                    <option value="Hasanağa" {% if prefill and prefill.location == 'Hasanağa' %}selected{% endif %}>Hasanağa</option>
                                 </select>
                             </div>
                         </div>
 
                         <hr class="border-secondary opacity-25 my-4">
+                        <h5 class="text-primary fw-bold mb-4">Özellikler</h5>
 
-                        <div class="row g-4 mb-4">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 <label class="form-label text-muted small fw-bold">ODA SAYISI</label>
                                 <select name="room_count" class="form-select">
-                                    <option value="1">1+1</option>
-                                    <option value="2">2+1</option>
-                                    <option value="3" selected>3+1</option>
-                                    <option value="4">4+1</option>
+                                    <option value="1+1" {% if prefill and prefill.room_count == '1+1' %}selected{% endif %}>1+1</option>
+                                    <option value="2+1" {% if prefill and prefill.room_count == '2+1' %}selected{% endif %}>2+1</option>
+                                    <option value="3+1" {% if prefill and prefill.room_count == '3+1' %}selected{% endif %}>3+1</option>
+                                    <option value="4+1" {% if prefill and prefill.room_count == '4+1' %}selected{% endif %}>4+1</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label text-muted small fw-bold">METREKARE (NET)</label>
-                                <input type="number" name="net_area" class="form-control" placeholder="100" required>
+                                <label class="form-label text-muted small fw-bold">NET M²</label>
+                                <input type="number" name="net_area" class="form-control"
+                                       value="{{ prefill.net_area if prefill and prefill.net_area else '' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">BRÜT M²</label>
+                                <input type="number" name="gross_area" class="form-control"
+                                       value="{{ prefill.gross_area if prefill and prefill.gross_area else '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">KAT</label>
+                                <input type="text" name="floor" class="form-control"
+                                       value="{{ prefill.floor if prefill and prefill.floor else '' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">BİNA YAŞI</label>
+                                <select name="building_age" class="form-select">
+                                    <option value="0-5" {% if prefill and prefill.building_age == '0-5' %}selected{% endif %}>0-5 Yaş</option>
+                                    <option value="5-10" {% if prefill and prefill.building_age == '5-10' %}selected{% endif %}>5-10 Yaş</option>
+                                    <option value="11-15" {% if prefill and prefill.building_age == '11-15' %}selected{% endif %}>11-15 Yaş</option>
+                                    <option value="16+" {% if prefill and prefill.building_age == '16+' %}selected{% endif %}>16+ Yaş</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted small fw-bold">ISITMA</label>
+                                <select name="heating_type" class="form-select">
+                                    <option value="Doğalgaz (Kombi)" {% if prefill and prefill.heating_type == 'Doğalgaz (Kombi)' %}selected{% endif %}>Doğalgaz</option>
+                                    <option value="Klima" {% if prefill and prefill.heating_type == 'Klima' %}selected{% endif %}>Klima</option>
+                                    <option value="Merkezi" {% if prefill and prefill.heating_type == 'Merkezi' %}selected{% endif %}>Merkezi</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label text-muted small fw-bold">AÇIKLAMA</label>
-                            <textarea name="description" class="form-control" rows="4"></textarea>
+                            <textarea name="description" class="form-control" rows="5" placeholder="İlan hakkında detaylı bilgi giriniz..."></textarea>
                         </div>
 
                         <div class="d-grid">
