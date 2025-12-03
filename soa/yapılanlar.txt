@@ -1,0 +1,234 @@
+Base URL: http://localhost:5000
+
+🔐 Yetkilendirme (Auth) Bilgisi
+Kilitli Endpointler: İlan Ekleme, Güncelleme, Silme ve Fiyat Tahmini.
+
+Header: Kilitli endpointlere istek atarken Header kısmına şu eklenmelidir: Authorization: Bearer <access_token> (Token, Login işleminden sonra alınır.)
+
+1. Kullanıcı İşlemleri (Auth)
+A. Kayıt Ol (Register)
+Yeni kullanıcı oluşturur.
+
+URL: /api/register
+
+Method: POST
+
+Request Body:
+
+JSON
+
+{
+  "first_name": "deneme",
+  "last_name": "test",
+  "email": "deneme@mail.com",
+  "password": "sifre123",
+  "phone": "05551112233"  // Opsiyonel
+}
+Response (201 Created):
+
+JSON
+
+{
+  "status": "success",
+  "message": "Kullanıcı başarıyla oluşturuldu."
+}
+B. Giriş Yap (Login)
+Sisteme giriş yapar ve işlem yapmak için gerekli Token'ı verir.
+
+URL: /api/login
+
+Method: POST
+
+Request Body:
+
+JSON
+
+{
+  "email": "deneme@mail.com",
+  "password": "sifre123"
+}
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIs...", 
+    "token_type": "bearer",
+    "user_name": "Denem Kullanıcı"
+  }
+}
+2. İlan İşlemleri (Listings)
+A. Tüm İlanları Getir
+Veritabanındaki kayıtlı tüm evleri listeler.
+
+URL: /api/listings
+
+Method: GET
+
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "656ae...",
+      "title": "Buca Şirinyer'de Metroya Yakın 3+1",
+      "price": 3500000,
+      "currency": "TRY",
+      "status": "active",
+      "location_details": {
+         "street_name": "Menderes Cad.",
+         "site_name": "Güneş Apt."
+      },
+      "property_specs": {
+         "room_count": "3+1",
+         "gross_m2": 135,
+         "net_m2": 120,
+         "heating": "Kombi"
+      },
+      "created_at": "2025-12-03T14:30:00"
+    },
+    // ... diğer ilanlar
+  ]
+}
+B. İlan Detay Görüntüleme
+Tek bir ilanın tüm detaylarını getirir.
+
+URL: /api/listings/:id (Örn: /api/listings/656ae...)
+
+Method: GET
+
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "data": {
+      "id": "656ae...",
+      "title": "Buca Şirinyer'de Metroya Yakın 3+1",
+      "description": "Detaylı açıklama metni buraya...",
+      "price": 3500000,
+      "tags": ["Krediye Uygun", "Balkonlu"],
+      "property_specs": { ... },
+      "location_details": { ... },
+      "user": "6512b..." // İlanı ekleyen kullanıcının ID'si
+  }
+}
+C. Yeni İlan Ekleme (🔒 Login Gerekli)
+URL: /api/listings
+
+Method: POST
+
+Headers: Authorization: Bearer <token>
+
+Request Body:
+
+JSON
+
+{
+  "title": "Dokuz Çeşmeler Meydanında Fırsat Daire",
+  "description": "Acil satılık, masrafsız...",
+  "price": 2750000,
+  "location": "Buca Merkez", 
+  "property_specs": {
+    "room_count": "2+1",
+    "net_m2": 95,
+    "gross_m2": 110,
+    "floor": 2,
+    "heating": "Klima"
+  },
+  "location_details": {
+     "street_name": "Hoca Ahmet Yesevi Cad.",
+     "coordinates": { "lat": 38.38, "lon": 27.17 }
+  },
+  "tags": ["Fırsat", "Acil"]
+}
+Response (201 Created):
+
+JSON
+
+{
+  "status": "success",
+  "message": "İlan başarıyla oluşturuldu.",
+  "data": {
+    "id": "656bf..." // Yeni oluşan ilanın ID'si
+  }
+}
+D. İlan Güncelleme (🔒 Login Gerekli)
+İlanın sadece değişen kısımlarını günceller.
+
+URL: /api/listings/:id
+
+Method: PUT
+
+Headers: Authorization: Bearer <token>
+
+Request Body: (Sadece değişecek alanlar gönderilebilir)
+
+JSON
+
+{
+  "price": 2650000,
+  "description": "Fiyat düştü! Acil satılık..."
+}
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "message": "İlan bilgileri güncellendi.",
+  "data": { ...güncel ilan verisi... }
+}
+E. İlan Silme (🔒 Login Gerekli)
+URL: /api/listings/:id
+
+Method: DELETE
+
+Headers: Authorization: Bearer <token>
+
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "message": "İlan silindi."
+}
+3. Yapay Zeka Tahmin (ML Integration)
+A. Fiyat Tahmini Al (Predict)
+Ev özelliklerini Python servisine gönderir ve tahmini fiyatı döner.
+
+URL: /api/predict
+
+Method: POST
+
+Request Body: (Python ML modelinin beklediği özellikler)
+
+JSON
+
+{
+  "room_count": 3,
+  "net_area": 120,
+  "floor": 2,
+  "location_score": 8,
+  "building_age": 10
+}
+Response (200 OK):
+
+JSON
+
+{
+  "status": "success",
+  "data": {
+      "predicted_price": 3450000,
+      "currency": "TRY",
+      "confidence_score": 0.92
+  }
+}
+(Not: Response içindeki data kısmı Python servisinden ne dönerse aynen onu yansıtır.)
