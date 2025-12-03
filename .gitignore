@@ -2,6 +2,3 @@
 bin/
 obj/
 .idea/
-*.iml
-*.iws
-*.ipr
