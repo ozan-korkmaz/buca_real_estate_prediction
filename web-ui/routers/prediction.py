@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter(prefix="/prediction", tags=["prediction"])
 templates = Jinja2Templates(directory="templates")
 
-API_URL = "http://localhost:5000/api/predict"
+API_URL = "http://localhost:5001/api/predict"
 
 @router.get("/estimate")
 async def estimate_page(request: Request):
