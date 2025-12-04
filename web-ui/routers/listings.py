@@ -1,3 +1,4 @@
+import requests
 from fastapi import APIRouter, Request, Form, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
@@ -6,67 +7,41 @@ from datetime import datetime
 router = APIRouter(prefix="/listings", tags=["listings"])
 templates = Jinja2Templates(directory="templates")
 
-# --- MOCK VERİTABANI ---
-# Gerçek API geldiğinde burası silinecek.
-MOCK_LISTINGS = [
-    {
-        "id": 101,
-        "title": "Buca Şirinyer'de Metroya Yakın 3+1",
-        "description": "Evimiz güney cephedir, karanlık odası yoktur. Metroya 5 dk yürüme mesafesinde. Aile apartmanı.",
-        "price": 3500000,
-        "location": "Şirinyer",
-        "room_count": "3+1",
-        "net_area": 120,
-        "gross_area": 135,
-        "floor": "3",
-        "building_age": "5-10",
-        "heating_type": "Doğalgaz (Kombi)",
-        "created_at": "2025-10-05",
-        "seller": {"name": "Ahmet Yılmaz", "phone": "05551234567"},
-        "comments": [
-            {"user": "Mehmet K.", "content": "Fiyatı piyasaya göre biraz yüksek ama konumu harika.", "rating": 4,
-             "date": "2025-10-07"},
-            {"user": "Ayşe D.", "content": "Evi gezdim, fotoğraflardaki gibi temiz.", "rating": 5, "date": "2025-10-08"}
-        ]
-    },
-    {
-        "id": 102,
-        "title": "Tınaztepe Kampüs Yanı Öğrenci Evi",
-        "description": "Üniversiteye yürüme mesafesinde, eşyalı, yatırımlık daire.",
-        "price": 1850000,
-        "location": "Tınaztepe",
-        "room_count": "1+1",
-        "net_area": 55,
-        "gross_area": 65,
-        "floor": "1",
-        "building_age": "0-5",
-        "heating_type": "Klima",
-        "created_at": "2025-10-06",
-        "seller": {"name": "Emlak Ofisi", "phone": "05321112233"},
-        "comments": []
-    }
-]
+API_URL = "http://localhost:5000/api/listings"
 
 
 # --- 1. LİSTELEME (INDEX) ---
 @router.get("/")
 async def index_page(request: Request):
-    # Sözleşmeye göre API bize bir liste dönecek
-    return templates.TemplateResponse("listings/index.html", {
-        "request": request,
-        "listings": MOCK_LISTINGS
+    listings = []
+    error = None
+    try:
+        #GET isteği
+        response = requests.get(API_URL)
+        if response.status_code == 200:
+            listings = response.json().get("data", [])
+        else:
+            error = "İlanlar getirilemedi"
+    except Exception as e:
+        error = f"API hatası: {e}"
+    return templates.TemplateResponse("listings/index.html",{
+        "request":request,
+        "listings": listings,
+        "error": error
     })
 
 
 # --- 2. İLAN VERME SAYFASI (CREATE GET) ---
 @router.get("/create")
 async def create_listing_page(request: Request):
-    # URL'deki parametreleri (price, location vb.) alıyoruz
-    prefill_data = request.query_params
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse(url="/auth/login")
 
+    prefill_data = request.query_params
     return templates.TemplateResponse("listings/create.html", {
         "request": request,
-        "prefill": prefill_data  # Bu veriyi şablona gönderiyoruz
+        "prefill": prefill_data
     })
 
 
@@ -85,35 +60,52 @@ async def create_listing_submit(
         building_age: str = Form(...),
         heating_type: str = Form(...)
 ):
-    # Yeni ilanı oluştur (Sanki API'ye JSON atıyormuşuz gibi)
-    new_listing = {
-        "id": len(MOCK_LISTINGS) + 101,
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse(url="/auth/login", status_code=303)
+
+    headers = {"Authorization": token}  # Cookie zaten "Bearer <token>" formatında kaydedilmişti
+    payload = {
         "title": title,
         "description": description,
         "price": price,
         "location": location,
-        "room_count": room_count,
-        "net_area": net_area,
-        "gross_area": gross_area,
-        "floor": floor,
         "building_age": building_age,
-        "heating_type": heating_type,
-        "created_at": datetime.now().strftime("%Y-%m-%d"),
-        "seller": {"name": "Ozan Korkmaz", "phone": "05001234567"},  # Auth gelince user'dan alınacak
-        "comments": []
+        "property_specs": {
+            "room_count": room_count,
+            "net_m2": net_area,
+            "gross_m2": gross_area,
+            "floor": floor,
+            "heating": heating_type
+        },
+        # Location details zorunlu ise dummy veri veya formdan ek veri eklenebilir
+        "location_details": {
+            "street_name": location,
+            "coordinates": {"lat": 0, "lon": 0}
+        }
     }
 
-    MOCK_LISTINGS.append(new_listing)
-    print(f"Yeni İlan Eklendi: {title}")
-
-    return RedirectResponse(url="/listings", status_code=303)
-
+    try:
+        response = requests.post(API_URL, json=payload, headers=headers)
+        if response.status_code == 201:
+            return RedirectResponse(url="/listings", status_code=303)
+        else:
+            print("Hata:", response.text)
+            return templates.TemplateResponse("listings/create.html", {"request": request, "error": "İlan eklenemedi"})
+    except Exception as e:
+        print("Exception:", e)
+        return templates.TemplateResponse("listings/create.html", {"request": request, "error": "Sunucu hatası"})
 
 # --- 4. İLAN DETAY (DETAIL) ---
 @router.get("/{id}")
 async def listing_detail(request: Request, id: int):
-    # Mock veritabanında ID'ye göre arama yapıyoruz
-    listing = next((item for item in MOCK_LISTINGS if item["id"] == id), None)
+    listing = None
+    try:
+        response = requests.get(f"{API_URL}/{id}")
+        if response.status_code == 200:
+            listing = response.json().get("data")
+    except Exception:
+        pass
 
     if not listing:
         return RedirectResponse(url="/listings")
