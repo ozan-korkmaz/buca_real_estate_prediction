@@ -9,6 +9,8 @@ templates = Jinja2Templates(directory="templates")
 
 API_URL = "http://localhost:5001/api/listings"
 AGENTS_API_URL = "http://localhost:5001/api/agents"
+COMMENTS_API_URL = "http://localhost:5001/api/comments" # <-- Tanımlandı
+USERS_API_URL = "http://localhost:5001/api/users"       # <-- Tanımlandı
 
 
 # --- 1. LİSTELEME (INDEX) ---
@@ -17,7 +19,6 @@ async def index_page(request: Request):
     listings = []
     error = None
     try:
-        #GET isteği
         response = requests.get(API_URL)
         if response.status_code == 200:
             listings = response.json().get("data", [])
@@ -65,7 +66,7 @@ async def create_listing_submit(
     if not token:
         return RedirectResponse(url="/auth/login", status_code=303)
 
-    headers = {"Authorization": token}  # Cookie zaten "Bearer <token>" formatında kaydedilmişti
+    headers = {"Authorization": token}
     payload = {
         "title": title,
         "description": description,
@@ -79,7 +80,6 @@ async def create_listing_submit(
             "floor": floor,
             "heating": heating_type
         },
-        # Location details zorunlu ise dummy veri veya formdan ek veri eklenebilir
         "location_details": {
             "street_name": location,
             "coordinates": {"lat": 0, "lon": 0}
@@ -102,50 +102,95 @@ async def create_listing_submit(
 async def listing_detail(request: Request, id: str):
     listing = None
     
-    # Not: API call fails if SOA is down or Agent data is not set up correctly.
     try:
         # 1. Listing verisini çek
         response = requests.get(f"{API_URL}/{id}")
+        
+        # Hata kontrolü: 404 ise HTTP hatası fırlat
+        if response.status_code == 404:
+            raise HTTPException(status_code=404, detail="İlan bulunamadı.")
+        
         if response.status_code == 200:
             listing = response.json().get("data")
             
-            # 2. Agent ID varsa, Agent (Satıcı) verisini çek ve ekle
+            listing["seller"] = {"name": "Satıcı Bilgisi Yok", "phone": "Yok"}
+            listing["comments"] = [] 
+
+            # 2. Agent verisini çekme
             if listing and "agency_id" in listing:
                 agency_id_obj = listing["agency_id"]
-                # MongoDB ObjectId yapısından string ID'yi al
                 agency_id = agency_id_obj.get("$oid") if isinstance(agency_id_obj, dict) else agency_id_obj
                 
-                # listing["seller"]'ı varsayılan olarak tanımla
-                listing["seller"] = {"name": "Ajans/Satıcı Bilgisi Eksik", "phone": "Yok"} 
-
                 if agency_id:
                     try:
                         agent_response = requests.get(f"{AGENTS_API_URL}/{agency_id}")
                         if agent_response.status_code == 200:
-                            agent_data = agent_response.json().get("data")
-                            # Agent verisini, frontend'in beklediği 'seller' alanına ekle
-                            listing["seller"] = agent_data
-                        elif agent_response.status_code == 404:
-                            listing["seller"] = {"name": "Ajans/Satıcı Bulunamadı (404)", "phone": "Yok"}
-                        else:
-                            # Diğer HTTP hataları
-                            listing["seller"] = {"name": f"Ajans/Satıcı API Hatası ({agent_response.status_code})", "phone": "Yok"}
-                    except requests.exceptions.RequestException as e:
-                        # Network veya bağlantı hatası (SOA kapalı)
-                        print(f"Agent API bağlantı hatası (SOA kapalı?): {e}")
-                        listing["seller"] = {"name": "Ajans/SOA Servisi Kapalı", "phone": "Yok"}
+                            listing["seller"] = agent_response.json().get("data")
+                    except requests.exceptions.RequestException:
+                         # SOA/Agent API bağlantısı kapalıysa
+                         listing["seller"]["name"] = "Ajans/SOA Servisi Kapalı"
+            
+            # 3. Yorum verisini çekme
+            listing_id_obj = listing["_id"] if "_id" in listing else listing.get("id")
+            listing_id = listing_id_obj.get("$oid") if isinstance(listing_id_obj, dict) else listing_id_obj
 
-        elif response.status_code == 404:
-            # İlan bulunamadı hatası (opsiyonel olarak bir hata şablonu oluşturulabilir)
-            raise HTTPException(status_code=404, detail="İlan bulunamadı.")
+            if listing_id:
+                try:
+                    comments_response = requests.get(f"{COMMENTS_API_URL}?listing_id={listing_id}") 
+                    
+                    if comments_response.status_code == 200:
+                        raw_comments = comments_response.json().get("data", [])
+                        processed_comments = []
+                        
+                        for comment in raw_comments:
+                            user_name = "Anonim Kullanıcı"
+                            user_id_obj = comment.get("user_id")
+                            user_id = user_id_obj.get("$oid") if isinstance(user_id_obj, dict) else user_id_obj
+                            
+                            if user_id:
+                                try:
+                                    # DEBUG: Kullanıcı API çağrısını ve yanıtını loglayın
+                                    print(f"DEBUG: Calling Users API: {USERS_API_URL}/{user_id}")
+                                    user_response = requests.get(f"{USERS_API_URL}/{user_id}")
+                                    print(f"DEBUG: User Response Status: {user_response.status_code}")
+                                    print(f"DEBUG: User Response Data: {user_response.text}")
+                                    
+                                    if user_response.status_code == 200:
+                                        user_data = user_response.json().get("data", {})
+                                        user_name = user_data.get("name", "Bilinmeyen Kullanıcı") # <-- 'name' alanını çeker
+                                        
+                                        print(f"DEBUG: Retrieved User Name: {user_name}") # <-- Log ekleyelim
+
+
+                                except requests.exceptions.RequestException:
+                                    print(f"DEBUG: Users API Connection Error for ID: {user_id}")
+                                    pass
+
+                            comment_text = comment.get("content") or comment.get("text") or "Yorum Metni Yok"
+                            
+                            processed_comments.append({
+                                "user": user_name, 
+                                "date": comment.get("created_at", "Tarih Yok"), 
+                                "content": comment_text, # API'den gelen 'content' veya 'text'i atıyoruz.
+                                "rating": comment.get("rating", 0) 
+                            })
+
+                        listing["comments"] = processed_comments
+                        
+                    elif comments_response.status_code != 404:
+                        print(f"Yorum API'si HTTP Hatası: {comments_response.status_code}")
+                        
+                except requests.exceptions.RequestException as e:
+                    print(f"Yorum API bağlantı hatası: {e}")
+
+        elif listing is None:
+            raise Exception("Listing API'den veri alınamadı.")
 
     except HTTPException:
-        # 404 hatasını yakala ve yönlendir
-        return templates.TemplateResponse("error.html", {"request": request, "error": "İlan Bulunamadı"}, status_code=404)
+        return RedirectResponse(url="/listings?error=Ilan_Bulunamadi", status_code=303)
     except Exception as e:
-        # Genel hata (API bağlantısı kesik vb.)
         print(f"Genel Hata: {e}")
-        return templates.TemplateResponse("error.html", {"request": request, "error": f"API bağlantı hatası: {e}"}, status_code=500)
+        return templates.TemplateResponse("listings/index.html", {"request": request, "error": f"API Bağlantı Hatası: {e}"})
 
     if not listing:
         return RedirectResponse(url="/listings", status_code=303)
