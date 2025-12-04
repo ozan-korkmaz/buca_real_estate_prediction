@@ -98,7 +98,7 @@ async def create_listing_submit(
 
 # --- 4. İLAN DETAY (DETAIL) ---
 @router.get("/{id}")
-async def listing_detail(request: Request, id: int):
+async def listing_detail(request: Request, id: str):
     listing = None
     try:
         response = requests.get(f"{API_URL}/{id}")
