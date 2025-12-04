@@ -5,6 +5,7 @@ import { connectDB } from './config/db';
 import authRoutes from './routes/authRoutes';
 import listingRoutes from './routes/listingRoutes';
 import predictionRoutes from './routes/predictionRoutes';
+import agentRoutes from './routes/agentRoutes'; // Bu satır ekli olmalı
 
 dotenv.config();
 connectDB();
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/predict', predictionRoutes);
+app.use('/api/agents', agentRoutes); // <-- Bu satır, '/api/agents' yoluyla Agent rotasını etkinleştirir.
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
