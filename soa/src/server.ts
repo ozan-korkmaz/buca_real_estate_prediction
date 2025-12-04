@@ -18,7 +18,7 @@ app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/predict', predictionRoutes);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
     console.log(`Server çalışıyor: http://localhost:${PORT}`);

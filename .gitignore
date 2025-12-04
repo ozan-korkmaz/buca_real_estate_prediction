@@ -4,3 +4,6 @@ obj/
 .idea/
 /web-ui/.idea
 *.xml
+.env
+*.pyc
+__pycache__/

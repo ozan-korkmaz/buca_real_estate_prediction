@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
-API_URL = "http://localhost:500/api"
+API_URL = "http://localhost:5001/api"
 
 # --- LOGIN (GİRİŞ) ---
 @router.get("/login")

@@ -7,7 +7,7 @@ from datetime import datetime
 router = APIRouter(prefix="/listings", tags=["listings"])
 templates = Jinja2Templates(directory="templates")
 
-API_URL = "http://localhost:5000/api/listings"
+API_URL = "http://localhost:5001/api/listings"
 
 
 # --- 1. LİSTELEME (INDEX) ---
