@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// TypeScript Tipleri (Kod yazarken kolaylık için)
 export interface IListing extends Document {
     title: string;
     description: string;
@@ -12,8 +11,9 @@ export interface IListing extends Document {
         gross_m2: number;
         net_m2: number;
         room_count: string;
-        floor: number; // veya string olabilir, JSON'da number geldiği için number yaptım
+        floor: number;
         heating: string;
+        building_age: number;
     };
     location_details: {
         street_name: string;
@@ -23,12 +23,11 @@ export interface IListing extends Document {
             lon: number;
         };
     };
-    agency_id?: string;       // Veritabanında string ID olarak duruyor
-    neighborhood_id?: string; // Veritabanında string ID olarak duruyor
+    agency_id?: string;
+    neighborhood_id?: string;
     created_at?: Date;
 }
 
-// Mongoose Şeması (Veritabanı kuralı)
 const ListingSchema: Schema = new Schema(
     {
         title: { type: String, required: true },
@@ -36,18 +35,19 @@ const ListingSchema: Schema = new Schema(
         price: { type: Number, required: true },
         currency: { type: String, default: 'TRY' },
         status: { type: String, default: 'active' },
-        tags: [{ type: String }], // String dizisi
+        tags: [{ type: String }],
 
-        // İç içe obje: Özellikler
+        // Özellikler (property_specs)
         property_specs: {
             gross_m2: { type: Number },
             net_m2: { type: Number },
             room_count: { type: String },
             floor: { type: Number },
-            heating: { type: String }
+            heating: { type: String },
+            building_age: { type: Number, required: true }
         },
 
-        // İç içe obje: Konum
+        // Konum
         location_details: {
             street_name: { type: String },
             site_name: { type: String },
@@ -58,17 +58,16 @@ const ListingSchema: Schema = new Schema(
         },
 
         agency_id: { type: String },
-        neighborhood_id: { type: String }
+        neighborhood_id: { type: String },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
     },
     { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }
 );
 
-// Frontend için _id -> id dönüşümü
 ListingSchema.set('toJSON', {
     virtuals: true,
     versionKey: false,
     transform: function (doc, ret) { delete ret._id; }
 });
 
-// 'Listings' koleksiyonuna bağlan
 export default mongoose.model<IListing>('Listing', ListingSchema, 'Listings');
