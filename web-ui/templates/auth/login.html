@@ -3,27 +3,53 @@
 {% block title %}Giriş Yap{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h3 class="text-center mb-3">Giriş Yap</h3>
+<div class="d-flex justify-content-center align-items-center min-vh-100" style="margin-top: -50px;">
+    <div class="col-12 col-md-6 col-lg-4">
+
+        <div class="card shadow-lg border-0 rounded-4">
+
+            <div class="card-header text-center py-3 rounded-top-4" style="background-color: var(--primary-color); color: #fff;">
+                <h4 class="mb-0 fw-bold">Giriş Yap</h4>
+            </div>
+
+            <div class="card-body p-4">
 
                 {% if error %}
-                <div class="alert alert-danger">{{ error }}</div>
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>{{ error }}</div>
+                </div>
                 {% endif %}
 
                 <form action="/auth/login" method="post">
                     <div class="mb-3">
-                        <label>Kullanıcı Adı</label>
-                        <input type="text" name="username" class="form-control" required>
+                        <label class="form-label fw-semibold text-secondary">Email Adresi</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-muted);">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="text" name="email" class="form-control" placeholder="ornek@mail.com" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label>Şifre</label>
-                        <input type="password" name="password" class="form-control" required>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary">Şifre</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-muted);">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" name="password" class="form-control" placeholder="******" required>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-success w-100">Giriş</button>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm">
+                        Giriş Yap
+                    </button>
                 </form>
+            </div>
+
+            <div class="card-footer text-center py-3 rounded-bottom-4" style="border-top: 1px solid var(--border-color);">
+                <small class="text-muted">Hesabın yok mu? <a href="/auth/register" class="fw-bold">Kayıt Ol</a></small>
             </div>
         </div>
     </div>
