@@ -21,7 +21,7 @@
                 </div>
                 {% endif %}
 
-                <form action="/auth/login" method="post">
+                <form id="loginForm" action="/auth/login" method="post">
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-secondary">Email Adresi</label>
                         <div class="input-group">
@@ -54,4 +54,50 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+        e.preventDefault(); // Formun standart gönderimini durdur
+
+        const formData = new FormData(this);
+        const emailValue = formData.get("email");
+
+        // Email'in @ işaretinden önceki kısmını kullanıcı adı yapalım (Örn: ahmet@mail -> ahmet)
+        let displayUsername = "Kullanıcı";
+        if (emailValue && emailValue.includes("@")) {
+            displayUsername = emailValue.split("@")[0];
+            // İlk harfi büyüt
+            displayUsername = displayUsername.charAt(0).toUpperCase() + displayUsername.slice(1);
+        }
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                // Başarılıysa LocalStorage'a kaydet
+                localStorage.setItem("username", displayUsername);
+
+                // Yönlendirme (Backend nereye yönlendiriyorsa veya ana sayfaya)
+                // Redirect response geldiyse url'yi alabiliriz, yoksa manuel:
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    window.location.href = "/listings";
+                }
+            } else {
+                // Hata durumu (Şifre yanlış vb.)
+                // Backend'in HTML hata sayfası dönme ihtimaline karşı sayfayı manuel yenile/submit et
+                // Ama basitçe uyarı verelim ya da formu normal submit edelim (fallback)
+                this.submit();
+            }
+        } catch (error) {
+            console.error("Login hatası:", error);
+            // Hata varsa normal submit etsin, backend halletsin
+            this.submit();
+        }
+    });
+</script>
 {% endblock %}
