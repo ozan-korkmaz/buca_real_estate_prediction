@@ -86,21 +86,40 @@
             </div>
 
             <div class="card border-0 shadow-lg p-4 bg-primary bg-opacity-10">
+                
+                {# DEBUG BLOKU KALDIRILDI #}
+                
                 <div class="d-flex align-items-center mb-3">
                     <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                         <i class="bi bi-person-fill fs-4"></i>
                     </div>
                     <div class="ms-3">
                         <h6 class="fw-bold text-white mb-0">
-                            {{ listing.seller.name if listing.seller and listing.seller.name else 'Satıcı Bilgisi Yok' }}
+                            {% if listing.seller and listing.seller.name and listing.seller.name != 'Satıcı Bilgisi Yok' %}
+                                {{ listing.seller.name }}
+                            {% else %}
+                                Satıcı Bilgisi Yok
+                            {% endif %}
                         </h6>
-                        <small class="text-primary fw-bold">İlan Sahibi</small>
+                        <small class="text-primary fw-bold">
+                            {% if listing.seller_type == 'agency' %}
+                                Emlak Ajansı
+                            {% elif listing.seller_type == 'user' %}
+                                Doğrudan Kullanıcı
+                            {% else %}
+                                İlan Sahibi
+                            {% endif %}
+                        </small>
                     </div>
                 </div>
                 <div class="d-grid">
                     <button class="btn btn-primary">
                         <i class="bi bi-telephone-fill me-2"></i>
-                        {{ listing.seller.phone if listing.seller and listing.seller.phone else 'Numara Yok' }}
+                        {% if listing.seller and listing.seller.phone and listing.seller.phone != 'Numara Yok' %}
+                            {{ listing.seller.phone }}
+                        {% else %}
+                            Numara Yok
+                        {% endif %}
                     </button>
                 </div>
             </div>
