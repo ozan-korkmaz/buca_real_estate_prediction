@@ -1,18 +1,38 @@
-// soa/src/models/Agent.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IAgent extends Document {
-    name: string; // Satıcı (Agent) adı
-    phone: string; // Satıcı (Agent) telefon numarası
-    // MongoDB'deki diğer Agent alanları buraya eklenebilir
+    full_name: string;
+    agency_name: string;
+    title: string;
+    address: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: 'agent';
+    createdAt: Date;
+    updatedAt: Date;
 }
 
-const AgentSchema: Schema = new Schema({
-    name: { type: String, required: true },
-    phone: { type: String, required: true },
-    // agency_id'ye gerek yok, çünkü bu model Agent'ın kendisini temsil ediyor ve Listings'ten _id ile çağrılacak.
-}, {
-    timestamps: true 
+const AgentSchema = new Schema<IAgent>(
+    {
+        full_name: { type: String, required: true },
+        agency_name: { type: String, required: true },
+        title: { type: String, required: true },
+        address: { type: String, required: true },
+        email: { type: String, required: true, unique: true },
+        phone: { type: String, required: true },
+        password: { type: String, required: true },
+        role: { type: String, default: 'agent' }
+    },
+    { timestamps: true }
+);
+
+AgentSchema.set('toJSON', {
+    transform(_doc, ret) {
+        delete ret.password;
+        return ret;
+    }
 });
 
-export const Agent = mongoose.model<IAgent>('Agent', AgentSchema, 'Agencies');
+// 🔹 Agents koleksiyonu
+export default mongoose.model<IAgent>('Agent', AgentSchema, 'Agents');

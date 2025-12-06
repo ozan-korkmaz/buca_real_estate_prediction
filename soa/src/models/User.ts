@@ -1,14 +1,16 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
-    name: string;       // first_name, last_name yerine tek bir name
+    name: string;
     email: string;
     password: string;
-    phone?: string;     // Veritabanında var
-    role?: string;      // Veritabanında var
+    phone?: string;
+    role: 'user';
+    createdAt: Date;
+    updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema(
+const UserSchema = new Schema<IUser>(
     {
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
@@ -19,5 +21,12 @@ const UserSchema: Schema = new Schema(
     { timestamps: true }
 );
 
-// 'Users' koleksiyonunu kullanmaya devam ediyoruz
+UserSchema.set('toJSON', {
+    transform(_doc, ret) {
+        delete ret.password;
+        return ret;
+    }
+});
+
+// 🔹 Users koleksiyonu
 export default mongoose.model<IUser>('User', UserSchema, 'Users');
