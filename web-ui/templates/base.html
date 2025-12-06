@@ -24,18 +24,21 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item me-3"><a class="nav-link" href="/listings">İlanlar</a></li>
-                    <li class="nav-item me-3"><a class="nav-link" href="/listings/create">İlan Ver</a></li>
-                    <li class="nav-item me-4"><a class="nav-link text-warning" href="/prediction/estimate"><i class="bi bi-stars"></i> Fiyat Al</a></li>
+                    
+                    <li class="nav-item me-3" id="nav-create-listing" style="display: none;">
+                        <a class="nav-link" href="/listings/create">İlan Ver</a>
+                    </li>
+                    <li class="nav-item me-4" id="nav-get-price" style="display: none;">
+                        <a class="nav-link text-warning" href="/prediction/estimate"><i class="bi bi-stars"></i> Fiyat Al</a>
+                    </li>
 
                     <li class="nav-item">
                         
-                        <!-- GİRİŞ YAPMAMIŞ NAV -->
                         <div id="guest-nav" style="display: none;">
                             <a href="/auth/login" class="btn btn-outline me-2">Giriş Yap</a>
                             <a href="/auth/register" class="btn btn-primary">Kayıt Ol</a>
                         </div>
 
-                        <!-- GİRİŞ YAPMIŞ NAV -->
                         <div id="user-nav" class="dropdown" style="display: none;">
                             <button class="btn btn-user-custom dropdown-toggle" type="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
@@ -82,21 +85,45 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            const username = getCookie("user_name");   // artık cookie'den alıyoruz
+            const username = getCookie("user_name");
+            const userRole = getCookie("user_role"); // 'agent' veya 'user'
 
             const guestNav = document.getElementById("guest-nav");
             const userNav = document.getElementById("user-nav");
             const usernameLabel = document.getElementById("nav-username");
+            
+            // Link elementleri
+            const navCreateListing = document.getElementById("nav-create-listing");
+            const navGetPrice = document.getElementById("nav-get-price");
 
             if (username) {
                 // Kullanıcı giriş yapmış
                 guestNav.style.display = "none";
                 userNav.style.display = "block";
-                usernameLabel.innerText = username;
+                
+                // Rol gösterimi
+                let roleText = userRole === 'agent' ? ' (Kurumsal)' : ' (Bireysel)';
+                usernameLabel.innerText = username + roleText;
+
+                // Rol Bazlı Link Gösterimi
+                if (userRole === 'agent') {
+                    // Ticari kullanıcı: İlan Ver ve Fiyat Al butonlarını görsün
+                    if(navCreateListing) navCreateListing.style.display = "block";
+                    if(navGetPrice) navGetPrice.style.display = "block";
+                } else {
+                    // Bireysel kullanıcı: Bunları görmesin
+                    if(navCreateListing) navCreateListing.style.display = "none";
+                    if(navGetPrice) navGetPrice.style.display = "none";
+                }
+
             } else {
-                // Giriş yapılmamış
+                // Giriş yapılmamış (Misafir)
                 guestNav.style.display = "block";
                 userNav.style.display = "none";
+                
+                // Misafir de butonları görmesin
+                if(navCreateListing) navCreateListing.style.display = "none";
+                if(navGetPrice) navGetPrice.style.display = "none";
             }
         });
 
