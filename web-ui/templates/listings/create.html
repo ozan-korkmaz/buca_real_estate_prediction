@@ -23,17 +23,17 @@
                             <div class="col-md-6">
                                 <label class="form-label text-muted small fw-bold">FİYAT (₺)</label>
                                 <input type="number" name="price" class="form-control form-control-lg"
-                                       value="{{ prefill.price if prefill and prefill.price else '' }}" required>
+                                       value="{{ prefill.price if prefill and prefill.price else '' }}" min="1" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted small fw-bold">KONUM / MAHALLE</label>
-                                <select name="location" class="form-select form-select-lg">
-                                    <option value="">Seçiniz...</option>
-                                    <option value="Buca Merkez" {% if prefill and prefill.location == 'Buca Merkez' %}selected{% endif %}>Buca Merkez</option>
-                                    <option value="Şirinyer" {% if prefill and prefill.location == 'Şirinyer' %}selected{% endif %}>Şirinyer</option>
-                                    <option value="Tınaztepe" {% if prefill and prefill.location == 'Tınaztepe' %}selected{% endif %}>Tınaztepe</option>
-                                    <option value="Yıldız" {% if prefill and prefill.location == 'Yıldız' %}selected{% endif %}>Yıldız</option>
-                                    <option value="Hasanağa" {% if prefill and prefill.location == 'Hasanağa' %}selected{% endif %}>Hasanağa</option>
+                                <select name="location" class="form-select form-select-lg" required> <option value="">Seçiniz...</option>
+                                    {% for neighborhood in neighborhoods %}
+                                    <option value="{{ neighborhood._id['$oid'] }}" 
+                                            {% if prefill and prefill.location == neighborhood._id['$oid'] %}selected{% endif %}>
+                                        {{ neighborhood.name }}
+                                    </option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -54,12 +54,12 @@
                             <div class="col-md-4">
                                 <label class="form-label text-muted small fw-bold">NET M²</label>
                                 <input type="number" name="net_area" class="form-control"
-                                       value="{{ prefill.net_area if prefill and prefill.net_area else '' }}" required>
+                                       value="{{ prefill.net_area if prefill and prefill.net_area else '' }}" min="0" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label text-muted small fw-bold">BRÜT M²</label>
                                 <input type="number" name="gross_area" class="form-control"
-                                       value="{{ prefill.gross_area if prefill and prefill.gross_area else '' }}" required>
+                                       value="{{ prefill.gross_area if prefill and prefill.gross_area else '' }}" min="0" required>
                             </div>
                         </div>
 
@@ -71,12 +71,8 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label text-muted small fw-bold">BİNA YAŞI</label>
-                                <select name="building_age" class="form-select">
-                                    <option value="0-5" {% if prefill and prefill.building_age == '0-5' %}selected{% endif %}>0-5 Yaş</option>
-                                    <option value="5-10" {% if prefill and prefill.building_age == '5-10' %}selected{% endif %}>5-10 Yaş</option>
-                                    <option value="11-15" {% if prefill and prefill.building_age == '11-15' %}selected{% endif %}>11-15 Yaş</option>
-                                    <option value="16+" {% if prefill and prefill.building_age == '16+' %}selected{% endif %}>16+ Yaş</option>
-                                </select>
+                                <input type="number" name="building_age" class="form-control"
+                                       value="{{ prefill.building_age if prefill and prefill.building_age else '' }}" min="0">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label text-muted small fw-bold">ISITMA</label>
