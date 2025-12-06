@@ -28,13 +28,17 @@
                     <li class="nav-item me-4"><a class="nav-link text-warning" href="/prediction/estimate"><i class="bi bi-stars"></i> Fiyat Al</a></li>
 
                     <li class="nav-item">
+                        
+                        <!-- GİRİŞ YAPMAMIŞ NAV -->
                         <div id="guest-nav" style="display: none;">
                             <a href="/auth/login" class="btn btn-outline me-2">Giriş Yap</a>
                             <a href="/auth/register" class="btn btn-primary">Kayıt Ol</a>
                         </div>
 
+                        <!-- GİRİŞ YAPMIŞ NAV -->
                         <div id="user-nav" class="dropdown" style="display: none;">
-                            <button class="btn btn-user-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-user-custom dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user-circle me-2"></i>
                                 <span id="nav-username">Kullanıcı</span>
                             </button>
@@ -45,6 +49,7 @@
                                 <li><a class="dropdown-item text-danger" href="#" onclick="handleLogout()"><i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap</a></li>
                             </ul>
                         </div>
+
                     </li>
 
                 </ul>
@@ -66,31 +71,40 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Cookie okuyucu
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) {
+                return parts.pop().split(";").shift();
+            }
+            return null;
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
-            const username = localStorage.getItem("username");
+            const username = getCookie("user_name");   // artık cookie'den alıyoruz
 
             const guestNav = document.getElementById("guest-nav");
             const userNav = document.getElementById("user-nav");
             const usernameLabel = document.getElementById("nav-username");
 
             if (username) {
-                // Kullanıcı var
-                if (guestNav) guestNav.style.display = "none";
-                if (userNav) {
-                    userNav.style.display = "block"; // Sadece ana kapsayıcıyı gösteriyoruz
-                    usernameLabel.innerText = username;
-                }
+                // Kullanıcı giriş yapmış
+                guestNav.style.display = "none";
+                userNav.style.display = "block";
+                usernameLabel.innerText = username;
             } else {
-                // Kullanıcı yok
-                if (guestNav) guestNav.style.display = "block";
-                if (userNav) userNav.style.display = "none";
+                // Giriş yapılmamış
+                guestNav.style.display = "block";
+                userNav.style.display = "none";
             }
         });
 
-        // Çıkış Yap Fonksiyonu
+        // Çıkış Yap → Cookie'leri temizle
         function handleLogout() {
-            localStorage.removeItem("username");
-            localStorage.removeItem("token");
+            document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             window.location.href = "/auth/login";
         }
     </script>

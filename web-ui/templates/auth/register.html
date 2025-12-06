@@ -1,40 +1,139 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
-    <div class="card shadow-lg p-4 p-md-5 border-0" style="max-width: 500px; width: 100%;">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold text-white">Aramıza Katılın</h2>
-            <p class="text-muted small">Fırsatları kaçırmamak için hemen üye olun.</p>
-        </div>
-
-        <form method="post" action="/auth/register">
-            <div class="row g-3 mb-3">
-                <div class="col-6">
-                    <label class="form-label small text-muted text-uppercase fw-bold">Ad</label>
-                    <input type="text" name="first_name" class="form-control" required>
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-7">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Kayıt Ol</h4>
                 </div>
-                <div class="col-6">
-                    <label class="form-label small text-muted text-uppercase fw-bold">Soyad</label>
-                    <input type="text" name="last_name" class="form-control" required>
+                <div class="card-body p-4">
+                    
+                    {% if error %}
+                    <div class="alert alert-danger shadow-sm" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                    </div>
+                    {% endif %}
+
+                    <ul class="nav nav-pills nav-fill mb-4 gap-2" id="registerTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold border" id="individual-tab" data-bs-toggle="pill" data-bs-target="#individual" type="button" role="tab" aria-controls="individual" aria-selected="true">
+                                <i class="fas fa-user me-2"></i>Bireysel
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold border" id="commercial-tab" data-bs-toggle="pill" data-bs-target="#commercial" type="button" role="tab" aria-controls="commercial" aria-selected="false">
+                                <i class="fas fa-briefcase me-2"></i>Emlak Ofisi / Danışman
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="registerTabContent">
+                        
+                        <div class="tab-pane fade show active" id="individual" role="tabpanel" aria-labelledby="individual-tab">
+                            <form action="/auth/register" method="POST">
+                                <input type="hidden" name="account_type" value="individual">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Ad</label>
+                                        <input type="text" name="first_name" class="form-control" required placeholder="Adınız">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Soyad</label>
+                                        <input type="text" name="last_name" class="form-control" required placeholder="Soyadınız">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">E-posta Adresi</label>
+                                    <input type="email" name="email" class="form-control" required placeholder="ornek@email.com">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Telefon</label>
+                                    <input type="tel" name="phone" class="form-control" placeholder="05XX XXX XX XX">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Şifre</label>
+                                    <input type="password" name="password" class="form-control" required placeholder="******">
+                                </div>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-check-circle me-2"></i>Bireysel Kayıt Ol
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="commercial" role="tabpanel" aria-labelledby="commercial-tab">
+                            <form action="/auth/register" method="POST">
+                                <input type="hidden" name="account_type" value="commercial">
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Ad</label>
+                                        <input type="text" name="first_name" class="form-control" required placeholder="Adınız">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Soyad</label>
+                                        <input type="text" name="last_name" class="form-control" required placeholder="Soyadınız">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Emlak Ofisi / Firma Adı</label>
+                                    <input type="text" name="agency_name" class="form-control" required placeholder="Örn: Buca Gayrimenkul">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Unvan</label>
+                                    <select name="title" class="form-select" required>
+                                        <option value="" selected disabled>Seçiniz...</option>
+                                        <option value="Gayrimenkul Danışmanı">Gayrimenkul Danışmanı</option>
+                                        <option value="Broker">Broker</option>
+                                        <option value="Ofis Sahibi">Ofis Sahibi / Müdür</option>
+                                        <option value="Ticari Gayrimenkul Uzmanı">Ticari Gayrimenkul Uzmanı</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Kurumsal E-posta</label>
+                                    <input type="email" name="email" class="form-control" required placeholder="info@ofis.com">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">İş Telefonu</label>
+                                    <input type="tel" name="phone" class="form-control" required placeholder="05XX XXX XX XX">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Ofis Adresi</label>
+                                    <textarea name="address" class="form-control" rows="2" placeholder="Ofis açık adresi..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Şifre</label>
+                                    <input type="password" name="password" class="form-control" required placeholder="******">
+                                </div>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-briefcase me-2"></i>Ticari Kayıt Ol
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <span class="text-muted">Zaten hesabınız var mı?</span> 
+                    <a href="/auth/login" class="fw-bold text-decoration-none ms-1">Giriş Yap</a>
                 </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label small text-muted text-uppercase fw-bold">E-Posta</label>
-                <input type="email" name="email" class="form-control" placeholder="adiniz@ornek.com" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label small text-muted text-uppercase fw-bold">Şifre</label>
-                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mb-3">Kayıt Ol</button>
-        </form>
-
-        <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25">
-            <small class="text-muted">Zaten hesabınız var mı? <a href="/auth/login" class="text-primary fw-bold text-decoration-none">Giriş Yap</a></small>
         </div>
     </div>
 </div>

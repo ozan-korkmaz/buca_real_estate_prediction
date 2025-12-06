@@ -4,12 +4,24 @@
 
 {% block content %}
 <div class="d-flex justify-content-center align-items-center min-vh-100" style="margin-top: -50px;">
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-lg-5">
 
         <div class="card shadow-lg border-0 rounded-4">
 
-            <div class="card-header text-center py-3 rounded-top-4" style="background-color: var(--primary-color); color: #fff;">
-                <h4 class="mb-0 fw-bold">Giriş Yap</h4>
+            <!-- Sekmeler -->
+            <div class="card-header p-0 border-0">
+                <ul class="nav nav-tabs nav-fill rounded-top-4" id="loginTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" id="bireysel-tab" onclick="switchTab('bireysel')">
+                            Bireysel Giriş
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="ticari-tab" onclick="switchTab('ticari')">
+                            Ticari Giriş
+                        </button>
+                    </li>
+                </ul>
             </div>
 
             <div class="card-body p-4">
@@ -21,83 +33,99 @@
                 </div>
                 {% endif %}
 
-                <form id="loginForm" action="/auth/login" method="post">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Email Adresi</label>
-                        <div class="input-group">
-                            <span class="input-group-text" style="background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-muted);">
-                                <i class="bi bi-envelope"></i>
-                            </span>
-                            <input type="text" name="email" class="form-control" placeholder="ornek@mail.com" required>
-                        </div>
-                    </div>
+                <!-- Bireysel Giriş -->
+                <div id="bireysel-form">
+                    <form action="/auth/login" method="post">
+                        <!-- Bireysel Giriş Tipi -->
+                        <input type="hidden" name="account_type" value="individual">
 
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold text-secondary">Şifre</label>
-                        <div class="input-group">
-                            <span class="input-group-text" style="background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-muted);">
-                                <i class="bi bi-lock"></i>
-                            </span>
-                            <input type="password" name="password" class="form-control" placeholder="******" required>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary">Email Adresi</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--bg-input); color: var(--text-muted);">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="email" name="email" class="form-control" placeholder="bireysel@mail.com" required>
+                            </div>
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm">
-                        Giriş Yap
-                    </button>
-                </form>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Şifre</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--bg-input); color: var(--text-muted);">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" name="password" class="form-control" placeholder="******" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Giriş Yap</button>
+                    </form>
+                </div>
+
+                <!-- Ticari Giriş -->
+                <div id="ticari-form" style="display:none;">
+                    <form action="/auth/login" method="post">
+                        <!-- Ticari Giriş Tipi -->
+                        <input type="hidden" name="account_type" value="commercial">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary">Kurumsal Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--bg-input); color: var(--text-muted);">
+                                    <i class="bi bi-building"></i>
+                                </span>
+                                <input type="email" name="email" class="form-control" placeholder="ticari@firma.com" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Şifre</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background-color: var(--bg-input); color: var(--text-muted);">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" name="password" class="form-control" placeholder="******" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 py-2 fw-bold">Ticari Giriş Yap</button>
+                    </form>
+                </div>
+
             </div>
 
-            <div class="card-footer text-center py-3 rounded-bottom-4" style="border-top: 1px solid var(--border-color);">
-                <small class="text-muted">Hesabın yok mu? <a href="/auth/register" class="fw-bold">Kayıt Ol</a></small>
+            <div class="card-footer text-center py-3">
+                <small class="text-muted">
+                    Hesabın yok mu? 
+                    <a href="/auth/register" class="fw-bold">Kayıt Ol</a>
+                </small>
             </div>
+
         </div>
     </div>
 </div>
 
 <script>
-    document.getElementById("loginForm").addEventListener("submit", async function(e) {
-        e.preventDefault(); // Formun standart gönderimini durdur
+function switchTab(type) {
+    const bireyselTab = document.getElementById("bireysel-tab");
+    const ticariTab = document.getElementById("ticari-tab");
 
-        const formData = new FormData(this);
-        const emailValue = formData.get("email");
+    const bireyselForm = document.getElementById("bireysel-form");
+    const ticariForm = document.getElementById("ticari-form");
 
-        // Email'in @ işaretinden önceki kısmını kullanıcı adı yapalım (Örn: ahmet@mail -> ahmet)
-        let displayUsername = "Kullanıcı";
-        if (emailValue && emailValue.includes("@")) {
-            displayUsername = emailValue.split("@")[0];
-            // İlk harfi büyüt
-            displayUsername = displayUsername.charAt(0).toUpperCase() + displayUsername.slice(1);
-        }
-
-        try {
-            const response = await fetch(this.action, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
-                // Başarılıysa LocalStorage'a kaydet
-                localStorage.setItem("username", displayUsername);
-
-                // Yönlendirme (Backend nereye yönlendiriyorsa veya ana sayfaya)
-                // Redirect response geldiyse url'yi alabiliriz, yoksa manuel:
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    window.location.href = "/listings";
-                }
-            } else {
-                // Hata durumu (Şifre yanlış vb.)
-                // Backend'in HTML hata sayfası dönme ihtimaline karşı sayfayı manuel yenile/submit et
-                // Ama basitçe uyarı verelim ya da formu normal submit edelim (fallback)
-                this.submit();
-            }
-        } catch (error) {
-            console.error("Login hatası:", error);
-            // Hata varsa normal submit etsin, backend halletsin
-            this.submit();
-        }
-    });
+    if (type === "bireysel") {
+        bireyselTab.classList.add("active");
+        ticariTab.classList.remove("active");
+        bireyselForm.style.display = "block";
+        ticariForm.style.display = "none";
+    } else {
+        ticariTab.classList.add("active");
+        bireyselTab.classList.remove("active");
+        ticariForm.style.display = "block";
+        bireyselForm.style.display = "none";
+    }
+}
 </script>
+
 {% endblock %}

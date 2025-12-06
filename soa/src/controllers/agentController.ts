@@ -1,6 +1,6 @@
 // soa/src/controllers/agentController.ts
 import { Request, Response } from 'express';
-import { Agent } from '../models/Agent'; 
+import  Agent  from '../models/Agent'; 
 import mongoose from 'mongoose';
 
 export const getAgentById = async (req: Request, res: Response): Promise<void> => {
