@@ -155,7 +155,7 @@ export const login = async (req: Request, res: Response) => {
             }
 
             const token = jwt.sign(
-                { sub: String(agent._id), role: 'agent', type: 'agent' },
+                { sub: String(agent._id), role: 'agent', type: 'agent', agency_name: agent.agency_name },
                 JWT_SECRET,
                 { expiresIn: '1d' }
             );

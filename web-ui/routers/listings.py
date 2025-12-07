@@ -14,19 +14,30 @@ AGENTS_API_URL = "http://localhost:5001/api/agents"
 COMMENTS_API_URL = "http://localhost:5001/api/comments"
 USERS_API_URL = "http://localhost:5001/api/users"
 
-# ... (Token fonksiyonları aynı kalacak) ...
+
+# --- TOKEN ÇÖZÜMLEME ---
 def decode_token(token: str):
+    """Token'ı çözer ve payload'u döndürür. Hata durumunda None."""
     try:
-        if token.startswith("Bearer "): token = token[7:]
+        if token.startswith("Bearer "):
+            token = token[7:]
         parts = token.split('.')
         if len(parts) != 3: return None
-        payload_bytes = base64.urlsafe_b64decode(parts[1] + '=' * (4 - len(parts[1]) % 4))
+        
+        payload_base64 = parts[1] 
+        padding = len(payload_base64) % 4
+        if padding > 0: payload_base64 += '=' * (4 - padding)
+            
+        payload_bytes = base64.urlsafe_b64decode(payload_base64)
         return json.loads(payload_bytes.decode('utf-8'))
-    except: return None
+    except Exception as e:
+        print(f"Token error: {e}")
+        return None
 
 def standardize_phone_data(data: dict) -> dict:
     phone = data.get("phone")
-    if not isinstance(phone, str) or not phone.strip(): data["phone"] = "Numara Yok"
+    if not isinstance(phone, str) or not phone.strip():
+        data["phone"] = "Numara Yok"
     return data
 
 # --- MAHALLE VERİSİ ---
@@ -35,6 +46,7 @@ def load_neighborhoods():
         {"_id": {"$oid": "692edc7ba7b9834d54d6aa5c"}, "name": "Adatepe Mahallesi", "slug": "adatepe"},
         {"_id": {"$oid": "692edd34a7b9834d54d6aa60"}, "name": "Tınaztepe Mahallesi", "slug": "tinaztepe"},
         {"_id": {"$oid": "692edd46a7b9834d54d6aa61"}, "name": "Efeler Mahallesi", "slug": "efeler"},
+        {"_id": {"$oid": "69301f30f9a575e1e6fb0967"}, "name": "Adatepe Mahallesi (Tekrar)"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0989"}, "name": "Yıldız Mahallesi", "slug": "yildiz"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0981"}, "name": "Şirinyer Mahallesi", "slug": "sirinyer"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0980"}, "name": "Buca Merkez", "slug": "merkez"},
@@ -49,21 +61,70 @@ def load_neighborhoods():
         {"_id": {"$oid": "69301f30f9a575e1e6fb0994"}, "name": "Yiğitler Mahallesi", "slug": "yigitler"},
     ]
 
-# ... (Index sayfası aynı) ...
+
+# --- 1. LİSTELEME (INDEX) - FİLTRELEME EKLENDİ ---
 @router.get("/")
 async def index_page(request: Request):
     listings = []
     error = None
     user_role = request.cookies.get("user_role")
+    token = request.cookies.get("access_token")
+
     try:
         response = requests.get(API_URL)
-        if response.status_code == 200: listings = response.json().get("data", [])
-        else: error = "İlanlar getirilemedi"
-    except Exception as e: error = f"API hatası: {e}"
-    return templates.TemplateResponse("listings/index.html", {"request": request, "listings": listings, "error": error, "user_role": user_role})
+        if response.status_code == 200:
+            all_listings = response.json().get("data", [])
+            
+            # --- AGENT İÇİN LİSTE FİLTRELEME ---
+            # Eğer kullanıcı 'agent' ise, sadece kendi ofisinin ilanlarını (veya kendi eklediklerini) görsün.
+            if user_role == 'agent' and token:
+                decoded = decode_token(token)
+                if decoded:
+                    my_agency_name = decoded.get("agency_name")
+                    my_user_id = decoded.get("sub") or decoded.get("id")
+                    
+                    filtered_listings = []
+                    for l in all_listings:
+                        # İlanın Ofis Adı
+                        l_agency = l.get("agency_name")
+                        
+                        # İlanın Sahip ID'si (agency_id veya user alanı)
+                        l_owner_id = l.get("agency_id")
+                        if not l_owner_id:
+                             u = l.get("user")
+                             # User objesi veya string gelebilir
+                             if isinstance(u, dict): l_owner_id = u.get("$oid")
+                             else: l_owner_id = u
+                        
+                        # Eşleşme Kontrolü: İsim tutuyor mu? VEYA ID tutuyor mu?
+                        is_agency_match = (my_agency_name and l_agency and my_agency_name == l_agency)
+                        is_user_match = (my_user_id and l_owner_id and str(my_user_id) == str(l_owner_id))
+                        
+                        if is_agency_match or is_user_match:
+                            filtered_listings.append(l)
+                    
+                    listings = filtered_listings
+                else:
+                    # Token bozuksa güvenli tarafta kal
+                    listings = []
+            else:
+                # Bireysel veya Misafir: Hepsini görsün
+                listings = all_listings
+
+        else:
+            error = "İlanlar getirilemedi"
+    except Exception as e:
+        error = f"API hatası: {e}"
+
+    return templates.TemplateResponse("listings/index.html",{
+        "request": request,
+        "listings": listings,
+        "error": error,
+        "user_role": user_role
+    })
 
 
-# --- 2. İLAN VERME SAYFASI (CREATE GET - OPTİMİZE EDİLDİ) ---
+# --- 2. İLAN VERME SAYFASI (CREATE GET) ---
 @router.get("/create")
 async def create_listing_page(request: Request):
     token = request.cookies.get("access_token")
@@ -72,16 +133,13 @@ async def create_listing_page(request: Request):
     if not token: return RedirectResponse(url="/auth/login", status_code=303)
     if user_role != 'agent': return RedirectResponse(url="/listings", status_code=303)
 
-    # Query parametrelerini (URL'den gelen) alıp bir sözlüğe (mutable) çevirelim
     prefill_data = dict(request.query_params)
     neighborhoods = load_neighborhoods() 
-
-    # --- AKILLI KONUM EŞLEŞTİRME ---
-    # Eğer URL'den "location_slug" geldiyse (buca-koop), bunu ID'ye çevirip "location" alanına atayalım
+    
+    # Akıllı Konum Eşleştirme
     incoming_slug = prefill_data.get("location_slug")
     if incoming_slug:
         for n in neighborhoods:
-            # Basit bir string eşleşmesi (slug veya isim içinde arama)
             if incoming_slug.lower() in n.get("slug", "").lower() or incoming_slug.lower() in n["name"].lower():
                 prefill_data["location"] = n["_id"]["$oid"]
                 break
@@ -93,7 +151,7 @@ async def create_listing_page(request: Request):
     })
 
 
-# --- 3. İLAN KAYDETME (CREATE POST - OPTİMİZE EDİLDİ) ---
+# --- 3. İLAN KAYDETME (CREATE POST) ---
 @router.post("/create")
 async def create_listing_submit(
         request: Request,
@@ -107,7 +165,6 @@ async def create_listing_submit(
         floor: str = Form(...),
         building_age: str = Form(...),
         heating_type: str = Form(...),
-        # Yeni Alanlar (Zorunlu değil, opsiyonel alalım)
         bathroom_count: str = Form(None),
         furnishing: str = Form(None)
 ):
@@ -126,9 +183,8 @@ async def create_listing_submit(
         if n.get('_id', {}).get('$oid') == neighborhood_id:
             neighborhood_name = n.get('name', 'Bilinmeyen Mahalle')
             break
-    
-    # --- VERİ ZENGİNLEŞTİRME ---
-    # Veritabanı şemasını değiştirmeden ek verileri Description'a gömüyoruz.
+            
+    # Açıklama Zenginleştirme
     final_description = description
     extras = []
     if bathroom_count: extras.append(f"Banyo Sayısı: {bathroom_count}")
@@ -143,7 +199,7 @@ async def create_listing_submit(
     payload = {
         "agency_id": user_id, 
         "title": title,
-        "description": final_description, # Güncellenmiş açıklama
+        "description": final_description,
         "price": price,
         "neighborhood_id": neighborhood_id, 
         "property_specs": {
@@ -166,8 +222,6 @@ async def create_listing_submit(
         if response.status_code == 201:
             return RedirectResponse(url="/listings", status_code=303)
         else:
-             # Hata durumunda verileri koruyarak formu geri dön
-             # prefill sözlüğünü form verileriyle dolduruyoruz
              form_data = {
                  "title": title, "description": description, "price": price, "location": neighborhood_id,
                  "room_count": room_count, "net_area": net_area, "gross_area": gross_area,
@@ -180,57 +234,126 @@ async def create_listing_submit(
     except Exception:
         return templates.TemplateResponse("listings/create.html", {"request": request, "error": "Sunucu hatası"})
 
-# ... (Geri kalan comment, detail kısımları aynı kalacak) ...
+
+# --- 4. YORUM YAPMA ---
 @router.post("/{id}/comment")
-async def add_comment(request: Request, id: str, rating: int = Form(...), content: str = Form(...)):
-    # ... (Önceki kodun aynısı) ...
+async def add_comment(
+    request: Request, 
+    id: str,
+    rating: int = Form(...),
+    content: str = Form(...)
+):
     token = request.cookies.get("access_token")
     user_role = request.cookies.get("user_role")
+
     if not token or user_role != 'user':
-        return RedirectResponse(url=f"/listings/{id}", status_code=303)
+        return RedirectResponse(url=f"/listings/{id}?error=Yorum_Icin_Giris_Yapin", status_code=303)
+
     decoded = decode_token(token)
     user_id = decoded.get("sub") or decoded.get("id")
+
     headers = {"Authorization": token}
-    payload = {"listing_id": id, "user_id": user_id, "content": content, "rating": rating, "created_at": datetime.utcnow().isoformat() + "Z"}
+    payload = {
+        "listing_id": id,
+        "user_id": user_id,
+        "content": content,
+        "rating": rating,
+        "created_at": datetime.utcnow().isoformat() + "Z"
+    }
+
     try:
-        requests.post(COMMENTS_API_URL, json=payload, headers=headers)
-    except: pass
+        resp = requests.post(COMMENTS_API_URL, json=payload, headers=headers)
+    except Exception as e:
+        print(f"Yorum hatası: {e}")
+
     return RedirectResponse(url=f"/listings/{id}", status_code=303)
 
+
+# --- 5. İLAN DETAY (DETAIL) - HATA DÜZELTİLDİ ---
 @router.get("/{id}")
 async def listing_detail(request: Request, id: str):
-    # ... (Önceki kodun aynısı, sadece format_date filtresi main.py'dan gelecek) ...
     token = request.cookies.get("access_token")
-    if not token: return RedirectResponse(url="/auth/login", status_code=303)
+    if not token:
+         return RedirectResponse(url="/auth/login", status_code=303)
+
     listing = None
     current_user_id = None
     user_role = request.cookies.get("user_role")
+    
+    # --- DEĞİŞKENİ BAŞTAN TANIMLIYORUZ ---
+    decoded = None 
+    
     if token:
         decoded = decode_token(token)
-        if decoded: current_user_id = decoded.get("sub") or decoded.get("id")
+        if decoded:
+             current_user_id = decoded.get("sub") or decoded.get("id")
+
     try:
         response = requests.get(f"{API_URL}/{id}")
         if response.status_code == 200:
             listing = response.json().get("data")
             listing["seller"] = {"name": "Satıcı Bilgisi Yok", "phone": "Numara Yok"}
             listing["seller_type"] = "unknown"
-            listing["comments"] = []
-            
-            # (Basitlik için seller fetch kodunu koru)
-            user_ref = listing.get("user")
+            listing["comments"] = [] 
+
+            # Satıcı / Ajans Bilgisi
             agency_ref = listing.get("agency_id")
+            user_ref = listing.get("user")
+            
             if agency_ref:
                 try:
                     ar = requests.get(f"{AGENTS_API_URL}/{agency_ref}")
-                    if ar.status_code==200: listing["seller"]=standardize_phone_data(ar.json()["data"]); listing["seller_type"]="agency"; listing["agency_id_str"]=agency_ref
+                    if ar.status_code == 200:
+                        listing["seller"] = standardize_phone_data(ar.json().get("data", {}))
+                        listing["seller_type"] = "agency"
+                        listing["agency_id_str"] = agency_ref
                 except: pass
             
-            if "id" not in listing and "_id" in listing: listing["id"] = listing["_id"]["$oid"] if isinstance(listing["_id"], dict) else listing["_id"]
+            if listing["seller_type"] == "unknown" and user_ref:
+                try:
+                    ur = requests.get(f"{USERS_API_URL}/{user_ref}")
+                    if ur.status_code == 200:
+                        listing["seller"] = standardize_phone_data(ur.json().get("data", {}))
+                        listing["seller_type"] = "user"
+                except: pass
+
+            if "id" not in listing and "_id" in listing:
+                listing["id"] = listing["_id"]["$oid"] if isinstance(listing["_id"], dict) else listing["_id"]
 
             try:
                 c_resp = requests.get(f"{COMMENTS_API_URL}?listing_id={listing['id']}")
-                if c_resp.status_code == 200: listing["comments"] = c_resp.json().get("data", [])
+                if c_resp.status_code == 200:
+                    listing["comments"] = c_resp.json().get("data", [])
             except: pass
-    except: pass
-    if not listing: return RedirectResponse(url="/listings", status_code=303)
-    return templates.TemplateResponse("listings/detail.html", {"request": request, "listing": listing, "user_role": user_role, "current_user_id": current_user_id})
+
+    except Exception as e:
+        print(f"Hata: {e}")
+
+    if not listing:
+        return RedirectResponse(url="/listings", status_code=303)
+
+    # --- YETKİ KONTROLÜ (Kurumsal Mantık) ---
+    current_user_agency = None
+    if decoded:
+        current_user_agency = decoded.get("agency_name")
+    
+    is_owner_agency = False
+    
+    if listing and user_role == 'agent':
+        listing_agency = listing.get("agency_name")
+        listing_owner_id = listing.get("agency_id_str") or listing.get("agency_id")
+        
+        # 1. Ofis İsim Eşleşmesi
+        if current_user_agency and listing_agency and current_user_agency == listing_agency:
+            is_owner_agency = True
+        # 2. ID Eşleşmesi
+        elif current_user_id and listing_owner_id and str(listing_owner_id) == str(current_user_id):
+            is_owner_agency = True
+
+    return templates.TemplateResponse("listings/detail.html", {
+        "request": request,
+        "listing": listing,
+        "user_role": user_role,
+        "current_user_id": current_user_id,
+        "is_owner_agency": is_owner_agency
+    })
