@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Tahmin Sonucu - EmlakZeka{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0 fw-bold"><i class="bi bi-stars me-2"></i>Tahmin Sonucu</h2>
+                    <p class="mb-0 opacity-75">Yapay zeka modelimiz evin değerini hesapladı.</p>
+                </div>
+                
+                <div class="card-body p-5 text-center">
+                    
+                    {% if price %}
+                        <h5 class="text-muted mb-3">Tahmini Piyasa Değeri</h5>
+                        <h1 class="display-3 fw-bold text-success mb-2">
+                            {{ "{:,.0f}".format(price).replace(',', '.') }} ₺
+                        </h1>
+                        
+                        {% if range %}
+                        <p class="text-muted mb-4">
+                            Tahmini Aralık: 
+                            <strong>{{ "{:,.0f}".format(range.min).replace(',', '.') }} ₺</strong> - 
+                            <strong>{{ "{:,.0f}".format(range.max).replace(',', '.') }} ₺</strong>
+                        </p>
+                        {% endif %}
+
+                        <p class="text-muted mb-5 small">
+                            *Bu fiyat %95 güven aralığında tahmin edilmiştir.
+                        </p>
+
+                        <div class="row g-3 mb-5 text-start bg-dark border border-secondary border-opacity-25 rounded p-3 mx-1">
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Tip</small>
+                                <span class="fw-bold text-light">{{ details.room_count }}+{{ details.hall_count }}</span>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Net Alan</small>
+                                <span class="fw-bold text-light">{{ details.net_area }} m²</span>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Kat</small>
+                                <span class="fw-bold text-light">{{ details.floor }} / {{ details.total_floors }}</span>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <small class="text-muted d-block">Isıtma</small>
+                                <span class="fw-bold text-light text-capitalize">{{ details.heating_type }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-3 d-md-flex justify-content-center">
+                            <a href="/prediction/estimate" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-arrow-repeat me-2"></i>Tekrar Hesapla
+                            </a>
+
+                            <a href="/listings/create?price={{ price | int }}&room_count={{ details.room_count }}+{{ details.hall_count }}&net_area={{ details.net_area }}&floor={{ details.floor }}&building_age={{ details.building_age }}&heating_type={{ details.heating_type }}&location_slug={{ details.location }}&bathroom_count={{ details.bathroom_count }}&furnishing={{ details.furnishing }}&title=Sahibinden {{ details.room_count }}%2B{{ details.hall_count }} Fırsat Daire&description={{ details.net_area }} m2 genişliğinde, {{ details.floor }}. katta harika bir daire." 
+                               class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-plus-circle-dotted me-2"></i>Bu Fiyatla İlan Oluştur
+                            </a>
+                        </div>
+
+                    {% else %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> Hesaplama yapılamadı. Servisleri kontrol edin.
+                        </div>
+                        <a href="/prediction/estimate" class="btn btn-outline-primary mt-3">Geri Dön</a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

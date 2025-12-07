@@ -26,6 +26,8 @@ export interface IListing extends Document {
     agency_id?: string;
     neighborhood_id?: string;
     created_at?: Date;
+    agency_name?: string;
+    user?: mongoose.Types.ObjectId | string;
 }
 
 const ListingSchema: Schema = new Schema(
@@ -58,6 +60,7 @@ const ListingSchema: Schema = new Schema(
         },
 
         agency_id: { type: String },
+        agency_name: { type: String },
         neighborhood_id: { type: String },
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
     },
