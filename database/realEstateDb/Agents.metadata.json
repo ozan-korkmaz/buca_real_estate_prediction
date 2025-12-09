@@ -1,1 +1,1 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"8c11dfa58cbb495fb1644aa298fa0d93","collectionName":"agents","type":"collection"}
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"email":{"$numberInt":"1"}},"name":"email_1","background":true,"unique":true},{"v":{"$numberInt":"2"},"key":{"agencyId":{"$numberInt":"1"}},"name":"agencyId_1","background":true}],"uuid":"e0935fce1397435d98426eac4fba99ba","collectionName":"Agents","type":"collection"}
