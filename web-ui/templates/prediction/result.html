@@ -56,16 +56,24 @@
                                 <i class="bi bi-arrow-repeat me-2"></i>Tekrar Hesapla
                             </a>
 
-                            <a href="/listings/create?price={{ price | int }}&room_count={{ details.room_count }}+{{ details.hall_count }}&net_area={{ details.net_area }}&floor={{ details.floor }}&building_age={{ details.building_age }}&heating_type={{ details.heating_type }}&location_slug={{ details.location }}&bathroom_count={{ details.bathroom_count }}&furnishing={{ details.furnishing }}&title=Sahibinden {{ details.room_count }}%2B{{ details.hall_count }} Fırsat Daire&description={{ details.net_area }} m2 genişliğinde, {{ details.floor }}. katta harika bir daire." 
+                            <a href="/listings/create?price={{ price | int }}&room_count={{ details.room_count }}&hall_count={{ details.hall_count }}&net_area={{ details.net_area }}&gross_area={{ (details.net_area * 1.25) | int }}&floor={{ details.floor }}&total_floors={{ details.total_floors }}&building_age={{ details.building_age }}&heating_type={{ details.heating_type }}&location_slug={{ details.location }}&bathroom_count={{ details.bathroom_count }}&furnishing={{ details.furnishing }}&usage_status={{ details.usage_status }}&title=Sahibinden {{ details.room_count }}%2B{{ details.hall_count }} Fırsat Daire&description={{ details.net_area }} m2 genişliğinde, {{ details.floor }}. katta harika bir daire." 
                                class="btn btn-primary btn-lg px-5">
                                 <i class="bi bi-plus-circle-dotted me-2"></i>Bu Fiyatla İlan Oluştur
                             </a>
                         </div>
 
                     {% else %}
-                        <div class="alert alert-warning" role="alert">
-                            <i class="bi bi-exclamation-triangle"></i> Hesaplama yapılamadı. Servisleri kontrol edin.
-                        </div>
+                        
+                        {% if error %}
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Hata: {{ error }}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i> Hesaplama yapılamadı. Servisleri kontrol edin.
+                            </div>
+                        {% endif %}
+                        
                         <a href="/prediction/estimate" class="btn btn-outline-primary mt-3">Geri Dön</a>
                     {% endif %}
 

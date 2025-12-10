@@ -85,7 +85,8 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            const username = getCookie("user_name");
+            // Encode edilmiş ismi alıyoruz (Örn: Ahmet%20Y%C4%B1lmaz)
+            const rawUsername = getCookie("user_name");
             const userRole = getCookie("user_role"); // 'agent' veya 'user'
 
             const guestNav = document.getElementById("guest-nav");
@@ -96,14 +97,26 @@
             const navCreateListing = document.getElementById("nav-create-listing");
             const navGetPrice = document.getElementById("nav-get-price");
 
-            if (username) {
+            if (rawUsername) {
+                // YENİ: İsmi okunabilir hale getir (Decode)
+                // "Ahmet%20Y%C4%B1lmaz" -> "Ahmet Yılmaz"
+                let cleanUsername = "Kullanıcı";
+                try {
+                    // replace ile + işaretlerini boşluğa çevir (bazen browser + koyar)
+                    cleanUsername = decodeURIComponent(rawUsername.replace(/\+/g, ' '));
+                } catch (e) {
+                    cleanUsername = rawUsername; // Hata olursa ham hali kalsın
+                }
+
                 // Kullanıcı giriş yapmış
                 guestNav.style.display = "none";
                 userNav.style.display = "block";
                 
                 // Rol gösterimi
                 let roleText = userRole === 'agent' ? ' (Kurumsal)' : ' (Bireysel)';
-                usernameLabel.innerText = username + roleText;
+                
+                // Ekrana temiz ismi bas
+                usernameLabel.innerText = cleanUsername + roleText;
 
                 // Rol Bazlı Link Gösterimi
                 if (userRole === 'agent') {
@@ -129,10 +142,14 @@
 
         // Çıkış Yap → Cookie'leri temizle
         function handleLogout() {
+            // Logout isteğini backend'e de atalım ki cookie temizlensin
+            fetch('/auth/logout').then(() => {
+                 window.location.href = "/auth/login";
+            });
+            // Frontend tarafında da garanti temizlik
             document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-            window.location.href = "/auth/login";
         }
     </script>
 </body>

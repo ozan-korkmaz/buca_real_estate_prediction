@@ -39,62 +39,88 @@
                                 <select class="form-select" name="location" required>
                                     <option value="" disabled {% if not prefill.get('location') %}selected{% endif %}>Seçiniz...</option>
                                     {% for n in neighborhoods %}
-                                    <option value="{{ n._id['$oid'] }}" 
-                                            {% if prefill.get('location') == n._id['$oid'] %}selected{% endif %}>
-                                        {{ n.name }}
-                                    </option>
+                                        <option value="{{ n._id['$oid'] }}" 
+                                            {% if prefill.get('location') == n._id['$oid'] or prefill.get('location') == n.slug %}selected{% endif %}>
+                                            {{ n.name }}
+                                        </option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Isıtma Tipi</label>
                                 <select class="form-select" name="heating_type">
-                                    <option value="Kombi" {% if prefill.get('heating_type') == 'kombi' %}selected{% endif %}>Kombi</option>
-                                    <option value="Merkezi" {% if prefill.get('heating_type') == 'merkezi' %}selected{% endif %}>Merkezi</option>
-                                    <option value="Klima" {% if prefill.get('heating_type') == 'klima' %}selected{% endif %}>Klima</option>
-                                    <option value="Yerden Isıtma" {% if prefill.get('heating_type') == 'yerden isitma' %}selected{% endif %}>Yerden Isıtma</option>
-                                    <option value="Soba" {% if prefill.get('heating_type') == 'soba' %}selected{% endif %}>Soba</option>
+                                    <option value="Kombi" {% if prefill.get('heating_type') in ['kombi', 'Kombi'] %}selected{% endif %}>Doğalgaz (Kombi)</option>
+                                    <option value="Merkezi" {% if prefill.get('heating_type') in ['merkezi', 'Merkezi'] %}selected{% endif %}>Merkezi Sistem</option>
+                                    <option value="Klima" {% if prefill.get('heating_type') in ['klima', 'Klima'] %}selected{% endif %}>Klima</option>
+                                    <option value="Yerden Isıtma" {% if prefill.get('heating_type') in ['yerden isitma', 'Yerden Isıtma'] %}selected{% endif %}>Yerden Isıtma</option>
+                                    <option value="Soba" {% if prefill.get('heating_type') in ['soba', 'Soba'] %}selected{% endif %}>Soba / Yok</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Oda Sayısı (Örn: 3+1)</label>
-                                <input type="text" class="form-control" name="room_count" 
-                                       value="{{ prefill.get('room_count', '') }}" required>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Oda</label>
+                                <input type="number" class="form-control" name="room_count" 
+                                       value="{{ prefill.get('room_count', '') }}" placeholder="3" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Salon</label>
+                                <input type="number" class="form-control" name="hall_count" 
+                                       value="{{ prefill.get('hall_count', '1') }}" placeholder="1">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Banyo</label>
+                                <input type="number" class="form-control" name="bathroom_count" 
+                                       value="{{ prefill.get('bathroom_count', '1') }}" placeholder="1">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold">Net m²</label>
                                 <input type="number" class="form-control" name="net_area" 
                                        value="{{ prefill.get('net_area', '') }}" required>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Brüt m²</label>
-                                <input type="number" class="form-control" name="gross_area" 
-                                       value="{{ prefill.get('gross_area', prefill.get('net_area')|int * 1.25 if prefill.get('net_area') else '') | int }}">
-                            </div>
                         </div>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
+                             <div class="col-md-3">
+                                <label class="form-label fw-bold">Brüt m²</label>
+                                <input type="number" class="form-control" name="gross_area" 
+                                       value="{{ prefill.get('gross_area', '') }}">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold">Bulunduğu Kat</label>
-                                <input type="text" class="form-control" name="floor" 
+                                <input type="number" class="form-control" name="floor" 
                                        value="{{ prefill.get('floor', '') }}" required>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Toplam Kat</label>
+                                <input type="number" class="form-control" name="total_floors" 
+                                       value="{{ prefill.get('total_floors', '') }}">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold">Bina Yaşı</label>
                                 <input type="number" class="form-control" name="building_age" 
                                        value="{{ prefill.get('building_age', '') }}" required>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Banyo Sayısı</label>
-                                <input type="number" class="form-control" name="bathroom_count" 
-                                       value="{{ prefill.get('bathroom_count', '1') }}">
-                            </div>
                         </div>
                         
-                        <input type="hidden" name="furnishing" value="{{ prefill.get('furnishing', '') }}">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Eşya Durumu</label>
+                                <select class="form-select" name="furnishing">
+                                    <option value="unfurnished" {% if prefill.get('furnishing') == 'unfurnished' %}selected{% endif %}>Eşyasız</option>
+                                    <option value="furnished" {% if prefill.get('furnishing') == 'furnished' %}selected{% endif %}>Eşyalı</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Kullanım Durumu</label>
+                                <select class="form-select" name="usage_status">
+                                    <option value="empty" {% if prefill.get('usage_status') == 'empty' %}selected{% endif %}>Boş</option>
+                                    <option value="owner" {% if prefill.get('usage_status') == 'owner' %}selected{% endif %}>Mülk Sahibi</option>
+                                    <option value="tenanted" {% if prefill.get('usage_status') == 'tenanted' %}selected{% endif %}>Kiracılı</option>
+                                </select>
+                            </div>
+                        </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold">Açıklama</label>
