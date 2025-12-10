@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}İlanı Düzenle - {{ listing.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-warning text-dark p-4">
+                    <h3 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i>İlanı Düzenle</h3>
+                </div>
+                <div class="card-body p-4">
+
+                    {% if error %}
+                    <div class="alert alert-danger mb-4">{{ error }}</div>
+                    {% endif %}
+
+                    <form action="/listings/{{ listing.id }}/edit" method="post">
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">İlan Başlığı</label>
+                                <input type="text" class="form-control" name="title" value="{{ listing.title }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Fiyat (₺)</label>
+                                <input type="number" class="form-control" name="price" value="{{ listing.price }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Mahalle</label>
+                                <select class="form-select" name="location" required>
+                                    <option value="" disabled>Seçiniz...</option>
+                                    {% for n in neighborhoods %}
+                                    <option value="{{ n._id['$oid'] }}" {% if listing.location == n._id['$oid'] %}selected{% endif %}>
+                                        {{ n.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Isıtma</label>
+                                <select class="form-select" name="heating_type">
+                                    <option value="Kombi" {% if listing.heating_type == 'Kombi' %}selected{% endif %}>Doğalgaz (Kombi)</option>
+                                    <option value="Merkezi" {% if listing.heating_type == 'Merkezi' %}selected{% endif %}>Merkezi</option>
+                                    <option value="Klima" {% if listing.heating_type == 'Klima' %}selected{% endif %}>Klima</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Oda</label>
+                                <input type="text" class="form-control" name="room_count" value="{{ listing.room_count }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Net m²</label>
+                                <input type="number" class="form-control" name="net_area" value="{{ listing.net_area }}" required>
+                            </div>
+                             <div class="col-md-4">
+                                <label class="form-label fw-bold">Brüt m²</label>
+                                <input type="number" class="form-control" name="gross_area" value="{{ listing.gross_area }}">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Kat</label>
+                                <input type="text" class="form-control" name="floor" value="{{ listing.floor }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Bina Yaşı</label>
+                                <input type="number" class="form-control" name="building_age" value="{{ listing.building_age }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Açıklama</label>
+                            <textarea class="form-control" name="description" rows="5" required>{{ listing.description }}</textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg fw-bold">Değişiklikleri Kaydet</button>
+                            <a href="/listings/{{ listing.id }}" class="btn btn-outline-secondary">İptal</a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
