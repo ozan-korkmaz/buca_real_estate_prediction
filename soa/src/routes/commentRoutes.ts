@@ -1,7 +1,12 @@
 import express from 'express';
-import { getListingComments } from '../controllers/commentController';
+import { getListingComments, createComment } from '../controllers/commentController';
 
 const router = express.Router();
-router.get('/', getListingComments); // Route: GET /api/comments?listing_id=...
-export default router;
 
+// Yorumları Getir
+router.get('/', getListingComments); 
+
+// YENİ EKLENEN: Yorum Kaydet
+router.post('/', createComment);
+
+export default router;

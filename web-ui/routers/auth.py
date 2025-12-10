@@ -2,24 +2,19 @@ import requests
 from fastapi import APIRouter, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
+import urllib.parse  # 1. GEREKLİ KÜTÜPHANE EKLENDİ
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
 
 API_URL = "http://localhost:5001/api"
 
-
-# ---------- LOGIN SAYFASI ----------
+# --- LOGIN SAYFASI (GET) ---
 @router.get("/login")
 async def login_page(request: Request):
-    msg = request.query_params.get("msg")
-    return templates.TemplateResponse(
-        "auth/login.html",
-        {"request": request, "msg": msg, "error": None}
-    )
+    return templates.TemplateResponse("auth/login.html", {"request": request})
 
-
-# ---------- LOGIN SUBMIT ----------
+# --- LOGIN İŞLEMİ (POST) ---
 @router.post("/login")
 async def login_submit(
     request: Request,
@@ -27,7 +22,6 @@ async def login_submit(
     password: str = Form(...),
     account_type: str = Form(...)
 ):
-    # Node'a gönderilecek payload
     payload = {
         "email": email,
         "password": password,
@@ -35,89 +29,95 @@ async def login_submit(
     }
 
     try:
-        resp = requests.post(f"{API_URL}/login", data=payload)
-    except Exception as e:
-        return templates.TemplateResponse(
-            "auth/login.html",
-            {"request": request, "error": f"API bağlantı hatası: {e}", "msg": None}
-        )
+        response = requests.post(f"{API_URL}/login", json=payload)
+        
+        if response.status_code == 200:
+            data = response.json().get("data", {})
+            token = data.get("access_token")
+            role = data.get("role")
+            
+            # --- TÜRKÇE KARAKTER SORUNU ÇÖZÜMÜ ---
+            # İsim verisi bazen None gelebilir, o yüzden "Kullanıcı" varsayılanı atıyoruz
+            raw_name = data.get("user_name") or "Kullanıcı"
+            
+            # 2. İsmi URL-Encode yapıyoruz (Örn: "Ahmet Yılmaz" -> "Ahmet%20Y%C4%B1lmaz")
+            # Böylece cookie'ye yazarken Türkçe karakter hatası vermez.
+            safe_user_name = urllib.parse.quote(raw_name)
 
-    if resp.status_code == 200:
-        data = resp.json().get("data", {})
-        token = data.get("access_token")
-        role = data.get("role")
-        user_name = data.get("user_name")
-
-        # Giriş başarılı → listings'e yönlendir
-        redirect = RedirectResponse(url="/listings", status_code=303)
-
-        if token:
-            redirect.set_cookie("access_token", f"Bearer {token}", httponly=True)
-        if role:
+            redirect = RedirectResponse(url="/listings", status_code=303)
+            
+            # Cookie'leri ayarla
+            redirect.set_cookie("access_token", token, httponly=True)
             redirect.set_cookie("user_role", role)
-        if user_name:
-            redirect.set_cookie("user_name", user_name)
+            redirect.set_cookie("user_name", safe_user_name) # 3. Güvenli ismi yaz
+            
+            return redirect
+        else:
+            error_msg = response.json().get("message", "Giriş başarısız")
+            return templates.TemplateResponse("auth/login.html", {
+                "request": request,
+                "error": error_msg
+            })
 
-        return redirect
+    except Exception as e:
+        return templates.TemplateResponse("auth/login.html", {
+            "request": request,
+            "error": f"Sunucu hatası: {e}"
+        })
 
-    # Hatalı giriş
-    try:
-        err_msg = resp.json().get("message", "Giriş başarısız.")
-    except Exception:
-        err_msg = f"Giriş başarısız: {resp.text}"
-
-    return templates.TemplateResponse(
-        "auth/login.html",
-        {"request": request, "error": err_msg, "msg": None}
-    )
-
-
-# ---------- REGISTER SAYFASI ----------
+# --- REGISTER SAYFASI (GET) ---
 @router.get("/register")
 async def register_page(request: Request):
-    return templates.TemplateResponse(
-        "auth/register.html",
-        {"request": request, "error": None}
-    )
+    return templates.TemplateResponse("auth/register.html", {"request": request})
 
-
-# ---------- REGISTER SUBMIT ----------
+# --- REGISTER İŞLEMİ (POST) ---
 @router.post("/register")
-async def register_submit(request: Request):
-    form = await request.form()
-
+async def register_submit(
+    request: Request,
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    phone: str = Form(...),
+    account_type: str = Form(...),
+    # Opsiyonel Alanlar (Sadece Emlakçılar İçin)
+    agency_name: str = Form(None),
+    title: str = Form(None),
+    address: str = Form(None)
+):
     payload = {
-        "first_name": form.get("first_name"),
-        "last_name": form.get("last_name"),
-        "email": form.get("email"),
-        "password": form.get("password"),
-        "phone": form.get("phone"),
-        "account_type": form.get("account_type"),
-        "agency_name": form.get("agency_name"),
-        "title": form.get("title"),
-        "address": form.get("address"),
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "password": password,
+        "phone": phone,
+        "account_type": account_type,
+        "agency_name": agency_name,
+        "title": title,
+        "address": address
     }
 
     try:
-        resp = requests.post(f"{API_URL}/register", data=payload)
+        response = requests.post(f"{API_URL}/register", json=payload)
+        if response.status_code == 201:
+            return RedirectResponse(url="/auth/login?success=Kayit_Basarili", status_code=303)
+        else:
+            error_msg = response.json().get("message", "Kayıt başarısız")
+            return templates.TemplateResponse("auth/register.html", {
+                "request": request, 
+                "error": error_msg
+            })
     except Exception as e:
-        return templates.TemplateResponse(
-            "auth/register.html",
-            {"request": request, "error": f"API bağlantı hatası: {e}"}
-        )
+        return templates.TemplateResponse("auth/register.html", {
+            "request": request, 
+            "error": f"Hata: {e}"
+        })
 
-    if resp.status_code == 201:
-        return RedirectResponse(
-            url="/auth/login?msg=Kayit_Basarili_Lutfen_Giris_Yapin",
-            status_code=303
-        )
-
-    try:
-        err_msg = resp.json().get("message", "Kayıt işlemi başarısız.")
-    except Exception:
-        err_msg = f"Kayıt işlemi başarısız: {resp.text}"
-
-    return templates.TemplateResponse(
-        "auth/register.html",
-        {"request": request, "error": err_msg}
-    )
+# --- ÇIKIŞ YAP (LOGOUT) ---
+@router.get("/logout")
+async def logout(request: Request):
+    response = RedirectResponse(url="/auth/login", status_code=303)
+    response.delete_cookie("access_token")
+    response.delete_cookie("user_role")
+    response.delete_cookie("user_name")
+    return response
