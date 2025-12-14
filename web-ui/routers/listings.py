@@ -327,3 +327,152 @@ async def add_comment(request: Request, id: str, rating: int = Form(...), conten
     try: requests.post(COMMENTS_API_URL, json=payload, headers=headers)
     except: pass
     return RedirectResponse(url=f"/listings/{id}", status_code=303)
+
+# --- 6. İLAN DÜZENLEME SAYFASI (EDIT GET) ---
+@router.get("/{id}/edit")
+async def edit_listing_page(request: Request, id: str):
+    token = request.cookies.get("access_token")
+    decoded = decode_token(token)
+
+    # 1. Giriş Kontrolü
+    if not token or not decoded or decoded.get("role") != 'agent':
+        return RedirectResponse(url=f"/listings/{id}", status_code=303)
+
+    listing_data = {}
+    error = None
+    neighborhoods = load_neighborhoods()
+
+    try:
+        # İlan verisini çek
+        response = requests.get(f"{API_URL}/{id}")
+        if response.status_code == 200:
+            data = response.json().get("data", {})
+            
+            # SADECE İLAN SAHİBİ DÜZENLEYEBİLİR
+            current_agency = decoded.get("agency_name")
+            listing_agency = data.get("agency_name")
+            
+            if current_agency != listing_agency:
+                return RedirectResponse(url=f"/listings/{id}?error=Yetkisiz_Islem", status_code=303)
+
+            # Veriyi form yapısına uydur (Mapping)
+            # Description içindeki "--- Diğer Özellikler ---" kısmını temizleyebiliriz
+            clean_desc = data.get("description", "").split("\n\n--- Diğer Özellikler ---")[0]
+
+            listing_data = {
+                "id": get_clean_id(data.get("_id")) or id,
+                "title": data.get("title"),
+                "description": clean_desc,
+                "price": data.get("price"),
+                "location": get_clean_id(data.get("neighborhood_id")), # Select box için ID lazım
+                "room_count": data.get("property_specs", {}).get("room_count"),
+                "net_area": data.get("property_specs", {}).get("net_m2"),
+                "gross_area": data.get("property_specs", {}).get("gross_m2"),
+                "floor": data.get("property_specs", {}).get("floor"),
+                "building_age": data.get("property_specs", {}).get("building_age"),
+                "heating_type": data.get("property_specs", {}).get("heating"),
+                # Diğer alanlar opsiyonel, description içinde parse edilebilir ama şimdilik boş bırakıyoruz
+                "total_floors": "", 
+                "hall_count": "", 
+                "bathroom_count": "",
+                "furnishing": "",
+                "usage_status": ""
+            }
+        else:
+            error = "İlan bulunamadı."
+    except Exception as e:
+        error = f"Hata: {e}"
+
+    return templates.TemplateResponse("listings/edit.html", {
+        "request": request,
+        "listing": listing_data,
+        "neighborhoods": neighborhoods,
+        "error": error
+    })
+
+# --- 7. İLAN GÜNCELLEME İŞLEMİ (EDIT POST) ---
+@router.post("/{id}/edit")
+async def edit_listing_submit(
+        request: Request,
+        id: str,
+        title: str = Form(...),
+        description: str = Form(...),
+        price: int = Form(...),
+        neighborhood_id: str = Form(..., alias="location"),
+        room_count: str = Form(...),
+        net_area: int = Form(...),
+        gross_area: int = Form(...),
+        floor: str = Form(...),
+        building_age: str = Form(...),
+        heating_type: str = Form(...)
+):
+    token = request.cookies.get("access_token")
+    if not token: return RedirectResponse(url="/auth/login", status_code=303)
+
+    # Mahalle Adı
+    neighborhoods_data = load_neighborhoods()
+    neighborhood_name = "Bilinmeyen Mahalle"
+    for n in neighborhoods_data:
+        if n.get('_id', {}).get('$oid') == neighborhood_id:
+            neighborhood_name = n.get('name')
+            break
+
+    # Headers (Bearer Token)
+    headers = get_auth_header(token)
+
+    payload = {
+        "title": title,
+        "description": description,
+        "price": price,
+        "neighborhood_id": neighborhood_id,
+        "property_specs": {
+            "room_count": room_count,
+            "net_m2": net_area,
+            "gross_m2": gross_area,
+            "floor": floor,
+            "heating": heating_type,
+            "building_age": building_age
+        },
+        "location_details": {
+            "street_name": neighborhood_name
+            # Koordinatları ellemiyoruz
+        }
+    }
+
+    try:
+        # PUT İsteği
+        response = requests.put(f"{API_URL}/{id}", json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            return RedirectResponse(url=f"/listings/{id}", status_code=303)
+        else:
+            # Hata durumunda edit sayfasına geri dön
+            print(f"Güncelleme Hatası: {response.text}")
+            return templates.TemplateResponse("listings/edit.html", {
+                "request": request,
+                "listing": {**payload, "id": id, "location": neighborhood_id}, # Form verilerini koru
+                "neighborhoods": neighborhoods_data,
+                "error": f"Güncelleme Başarısız: {response.text}"
+            })
+    except Exception as e:
+        print(f"Sunucu Hatası: {e}")
+        return RedirectResponse(url=f"/listings/{id}?error=Sunucu_Hatasi", status_code=303)
+
+# --- 8. İLAN SİLME İŞLEMİ (DELETE POST) ---
+@router.post("/{id}/delete")
+async def delete_listing(request: Request, id: str):
+    token = request.cookies.get("access_token")
+    if not token: return RedirectResponse(url="/auth/login", status_code=303)
+
+    headers = get_auth_header(token)
+    
+    try:
+        response = requests.delete(f"{API_URL}/{id}", headers=headers)
+        if response.status_code == 200:
+            return RedirectResponse(url="/listings?success=Silindi", status_code=303)
+        else:
+            print(f"Silme Hatası: {response.text}")
+            return RedirectResponse(url=f"/listings/{id}?error=Silme_Basarisiz", status_code=303)
+    except Exception as e:
+        print(f"Silme Exception: {e}")
+        return RedirectResponse(url=f"/listings/{id}?error=Sunucu_Hatasi", status_code=303)
