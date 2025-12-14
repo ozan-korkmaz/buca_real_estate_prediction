@@ -71,10 +71,32 @@
         </div>
     </footer>
 
+    <div id="chat-widget-container">
+        <div id="chat-button" onclick="toggleChat()">
+            <i class="bi bi-chat-dots-fill me-1"></i> Asistan
+        </div>
+        
+        <div id="chat-window" class="hidden">
+            <div class="chat-header">
+                <span><i class="bi bi-robot me-2"></i>Emlak Asistanı</span>
+                <button onclick="toggleChat()" style="background:none; border:none; color:white; cursor:pointer; font-size: 1.2rem;">&times;</button>
+            </div>
+            <div id="chat-messages">
+                <div class="message bot-message">
+                    Merhaba! Ben Buca Emlak Asistanı. Size fiyatlar veya bölge hakkında nasıl yardımcı olabilirim?
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="user-input" placeholder="Bir soru sorun..." onkeypress="handleKeyPress(event)" autocomplete="off">
+                <button onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Cookie okuyucu
+        // --- MEVCUT AUTH SCRIPT ---
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -85,71 +107,121 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Encode edilmiş ismi alıyoruz (Örn: Ahmet%20Y%C4%B1lmaz)
             const rawUsername = getCookie("user_name");
-            const userRole = getCookie("user_role"); // 'agent' veya 'user'
+            const userRole = getCookie("user_role");
 
             const guestNav = document.getElementById("guest-nav");
             const userNav = document.getElementById("user-nav");
             const usernameLabel = document.getElementById("nav-username");
             
-            // Link elementleri
             const navCreateListing = document.getElementById("nav-create-listing");
             const navGetPrice = document.getElementById("nav-get-price");
 
             if (rawUsername) {
-                // YENİ: İsmi okunabilir hale getir (Decode)
-                // "Ahmet%20Y%C4%B1lmaz" -> "Ahmet Yılmaz"
                 let cleanUsername = "Kullanıcı";
                 try {
-                    // replace ile + işaretlerini boşluğa çevir (bazen browser + koyar)
                     cleanUsername = decodeURIComponent(rawUsername.replace(/\+/g, ' '));
                 } catch (e) {
-                    cleanUsername = rawUsername; // Hata olursa ham hali kalsın
+                    cleanUsername = rawUsername;
                 }
 
-                // Kullanıcı giriş yapmış
                 guestNav.style.display = "none";
                 userNav.style.display = "block";
                 
-                // Rol gösterimi
                 let roleText = userRole === 'agent' ? ' (Kurumsal)' : ' (Bireysel)';
-                
-                // Ekrana temiz ismi bas
                 usernameLabel.innerText = cleanUsername + roleText;
 
-                // Rol Bazlı Link Gösterimi
                 if (userRole === 'agent') {
-                    // Ticari kullanıcı: İlan Ver ve Fiyat Al butonlarını görsün
                     if(navCreateListing) navCreateListing.style.display = "block";
                     if(navGetPrice) navGetPrice.style.display = "block";
                 } else {
-                    // Bireysel kullanıcı: Bunları görmesin
                     if(navCreateListing) navCreateListing.style.display = "none";
                     if(navGetPrice) navGetPrice.style.display = "none";
                 }
 
             } else {
-                // Giriş yapılmamış (Misafir)
                 guestNav.style.display = "block";
                 userNav.style.display = "none";
                 
-                // Misafir de butonları görmesin
                 if(navCreateListing) navCreateListing.style.display = "none";
                 if(navGetPrice) navGetPrice.style.display = "none";
             }
         });
 
-        // Çıkış Yap → Cookie'leri temizle
         function handleLogout() {
-            // Logout isteğini backend'e de atalım ki cookie temizlensin
             fetch('/auth/logout').then(() => {
                  window.location.href = "/auth/login";
             });
-            // Frontend tarafında da garanti temizlik
             document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
             document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+        }
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chat-window');
+            if (chatWindow.classList.contains('hidden')) {
+                chatWindow.classList.remove('hidden');
+                setTimeout(() => document.getElementById('user-input').focus(), 100);
+            } else {
+                chatWindow.classList.add('hidden');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const inputField = document.getElementById('user-input');
+            const messageText = inputField.value.trim();
+            const messagesContainer = document.getElementById('chat-messages');
+
+            if (!messageText) return;
+
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.className = 'message user-message';
+            userMsgDiv.textContent = messageText;
+            messagesContainer.appendChild(userMsgDiv);
+            
+            inputField.value = ''; 
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot-message';
+            loadingDiv.innerHTML = '<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>';
+            loadingDiv.id = 'loading-msg';
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const response = await fetch('/chatbot/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                const data = await response.json();
+
+                const loadingElement = document.getElementById('loading-msg');
+                if (loadingElement) loadingElement.remove();
+
+                const botMsgDiv = document.createElement('div');
+                botMsgDiv.className = 'message bot-message';
+
+                botMsgDiv.textContent = data.response; 
+                messagesContainer.appendChild(botMsgDiv);
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            } catch (error) {
+                console.error('Chatbot Hatası:', error);
+                const loadingElement = document.getElementById('loading-msg');
+                if (loadingElement) {
+                    loadingElement.textContent = "Üzgünüm, bir bağlantı hatası oluştu.";
+                }
+            }
         }
     </script>
 </body>
