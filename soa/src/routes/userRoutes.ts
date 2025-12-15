@@ -1,6 +1,11 @@
 import express from 'express';
-import { getUserById } from '../controllers/userController';
+import { protect } from "../middleware/auth";
+import { getMe, updateMe, getUserById } from "../controllers/userController";
 
 const router = express.Router();
-router.get('/:id', getUserById); 
+router.get("/me", protect, getMe);
+router.patch("/me", protect, updateMe);
+router.get("/:id", getUserById);
+
+
 export default router;

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Profil{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row g-4">
+
+        <!-- PROFIL KART -->
+        <div class="col-lg-4">
+            <div class="card p-4 text-center">
+                <i class="fas fa-user-circle fa-5x mb-3 text-primary"></i>
+
+                <h4>{{ current_user.name }}</h4>
+                <p class="text-muted">{{ current_user.email }}</p>
+
+                <span class="badge bg-secondary">
+                    {{ current_user.role | upper }}
+                </span>
+            </div>
+        </div>
+
+        <!-- GUNCELLEME ALANLARI -->
+        <div class="col-lg-8">
+
+            <!-- AD -->
+            <div class="card p-4 mb-4">
+                <h5>Isim Guncelle</h5>
+
+                <input id="name" type="text"
+                       class="form-control mb-3"
+                       value="{{ current_user.name }}">
+
+                <button class="btn btn-primary" onclick="updateName()">
+                    Guncelle
+                </button>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="card p-4 mb-4">
+                <h5>Email Guncelle</h5>
+
+                <input id="email" type="email"
+                       class="form-control mb-3"
+                       value="{{ current_user.email }}">
+
+                <button class="btn btn-primary" onclick="updateEmail()">
+                    Guncelle
+                </button>
+            </div>
+
+            <!-- SIFRE -->
+            <div class="card p-4">
+                <h5>Sifre Guncelle</h5>
+
+                <input id="password" type="password"
+                       class="form-control mb-3"
+                       placeholder="Yeni sifre">
+
+                <button class="btn btn-danger" onclick="updatePassword()">
+                    Sifreyi Degistir
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+console.log("PROFILE JS LOADED - HTTPONLY UYUMLU");
+
+// Hata yönetimini merkezileştirme fonksiyonu
+function handleAuthError(res) {
+    if (res.status === 401) {
+        alert("Oturumunuz sona ermis veya gecersiz. Lutfen tekrar giris yapin.");
+        // Kullanıcıyı login sayfasına yönlendirmek iyi bir uygulamadır:
+        // window.location.href = '/login'; 
+        return true; // Hata bulundu ve uyarı verildi
+    }
+    return false; // Hata yok veya başka bir hata kodu
+}
+
+
+async function updateName() {
+    const name = document.getElementById("name").value;
+
+    const res = await fetch("http://127.0.0.1:5001/api/users/me", {
+        method: "PATCH",
+        credentials: "include", // Cookie'yi otomatik göndermesini sağlar
+        headers: {
+            "Content-Type": "application/json"
+            // Authorization başlığı KALDIRILDI
+        },
+        body: JSON.stringify({ name })
+    });
+
+    if (handleAuthError(res)) {
+        return;
+    }
+
+    if (!res.ok) {
+        alert("Ad guncellenemedi. Sunucu hatasi.");
+        return;
+    }
+
+    alert("Ad basariyla guncellendi");
+}
+
+async function updateEmail() {
+    const email = document.getElementById("email").value;
+
+    const res = await fetch("http://127.0.0.1:5001/api/users/me", {
+        method: "PATCH",
+        credentials: "include", // Cookie'yi otomatik göndermesini sağlar
+        headers: {
+            "Content-Type": "application/json"
+            // Authorization başlığı KALDIRILDI
+        },
+        body: JSON.stringify({ email })
+    });
+
+    if (handleAuthError(res)) {
+        return;
+    }
+
+    if (!res.ok) {
+        alert("Email guncellenemedi. Sunucu hatasi.");
+        return;
+    }
+
+    alert("Email basariyla guncellendi");
+}
+
+async function updatePassword() {
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("http://127.0.0.1:5001/api/users/me", {
+        method: "PATCH",
+        credentials: "include", // Cookie'yi otomatik göndermesini sağlar
+        headers: {
+            "Content-Type": "application/json"
+            // Authorization başlığı KALDIRILDI
+        },
+        body: JSON.stringify({ password })
+    });
+
+    if (handleAuthError(res)) {
+        return;
+    }
+
+    if (!res.ok) {
+        alert("Sifre guncellenemedi. Sunucu hatasi.");
+        return;
+    }
+
+    alert("Sifre guncellendi");
+}
+</script>
+
+{% endblock %}

@@ -2,7 +2,15 @@ import requests
 from fastapi import APIRouter, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
+from fastapi import Request, HTTPException, status
+import jwt
+import os
 import urllib.parse  # 1. GEREKLİ KÜTÜPHANE EKLENDİ
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET bulunamadi")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
@@ -121,3 +129,29 @@ async def logout(request: Request):
     response.delete_cookie("user_role")
     response.delete_cookie("user_name")
     return response
+
+
+def get_current_user(request: Request) -> dict:
+    token = request.cookies.get("access_token")
+
+    print("JWT_SECRET:", JWT_SECRET)
+    print("TOKEN:", token)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token bulunamadi"
+        )
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token suresi dolmus"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Gecersiz token"
+        )
