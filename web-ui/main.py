@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from routers import auth, listings, prediction, chatbot, user
+from routers.stats import router as stats_router
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ app.include_router(listings.router)
 app.include_router(prediction.router)
 app.include_router(chatbot.router)
 app.include_router(user.router) 
+app.include_router(stats_router)
 
 @app.get("/")
 async def root():

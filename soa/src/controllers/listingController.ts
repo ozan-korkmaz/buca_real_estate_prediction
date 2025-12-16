@@ -1,6 +1,12 @@
+// soa/src/controllers/listingController.ts
+
 import { Request, Response } from 'express';
+// Gerekli tipleri mongoose'tan import ediyoruz
+import { PipelineStage } from 'mongoose'; 
 import Listing from '../models/Listing';
-import { AuthRequest } from '../middleware/auth';
+// auth.ts'den genişlettiğimiz AuthRequest tipini import ediyoruz
+import { AuthRequest } from '../middleware/auth'; 
+
 
 export const getListings = async (req: Request, res: Response) => {
     try {
@@ -13,11 +19,12 @@ export const getListings = async (req: Request, res: Response) => {
 
 export const createListing = async (req: AuthRequest, res: Response) => {
     try {
-        // new Listing() kullanarak TypeScript hatasını engelliyoruz
+        // req.user.id artık type-safe olmalı (auth.ts'de IUserDocument ile tanımlandı)
         const newListing = new Listing({
             ...req.body,
-            user: req.user.id, // Token'dan gelen user id
-            agency_name: (req.user as any).agency_name || "Bireysel"
+            // req.user varlığını ve içindeki id alanını biliyoruz
+            user: req.user!.id, 
+            agency_name: req.user!.agency_name || "Bireysel"
         });
 
         await newListing.save();
@@ -28,6 +35,7 @@ export const createListing = async (req: AuthRequest, res: Response) => {
             data: { id: newListing._id }
         });
     } catch (error) {
+        console.error('DEBUG HATA (createListing):', error);
         res.status(400).json({ status: 'error', message: 'Kayıt başarısız', error });
     }
 };
@@ -50,12 +58,10 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
             return res.status(404).json({ status: 'error', message: 'İlan bulunamadı.' });
         }
 
-        // KONTROL: İlanın ofis adı ile silmek isteyenin ofis adı aynı mı?
-        const requesterAgency = (req.user as any).agency_name;
+        const requesterAgency = req.user!.agency_name; // ! ile req.user'ın var olduğunu varsayıyoruz (protect middleware'dan geldi)
         
-        // Eğer ajans adı varsa ve eşleşiyorsa VEYA bireysel kullanıcı kendi ilanını siliyorsa
         const isAgencyMatch = listing.agency_name && listing.agency_name === requesterAgency;
-        const isUserMatch = listing.user && String(listing.user) === req.user.id;
+        const isUserMatch = listing.user && String(listing.user) === req.user!.id;
 
         if (isAgencyMatch || isUserMatch) {
             await Listing.findByIdAndDelete(req.params.id);
@@ -65,6 +71,7 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
         }
 
     } catch (error) {
+        console.error('DEBUG HATA (deleteListing):', error);
         res.status(500).json({ status: 'error', message: 'Silinemedi.', error });
     }
 };
@@ -78,10 +85,9 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
             return res.status(404).json({ status: 'error', message: 'İlan bulunamadı.' });
         }
 
-        // KONTROL (Delete ile aynı mantık)
-        const requesterAgency = (req.user as any).agency_name;
+        const requesterAgency = req.user!.agency_name;
         const isAgencyMatch = listing.agency_name && listing.agency_name === requesterAgency;
-        const isUserMatch = listing.user && String(listing.user) === req.user.id;
+        const isUserMatch = listing.user && String(listing.user) === req.user!.id;
 
         if (!isAgencyMatch && !isUserMatch) {
             return res.status(403).json({ status: 'error', message: 'Bu ilanı düzenleme yetkiniz yok.' });
@@ -100,6 +106,61 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
         });
 
     } catch (error: any) {
+        console.error('DEBUG HATA (updateListing):', error);
         res.status(500).json({ status: 'error', message: 'Güncelleme başarısız.', error: error.message });
     }
+};
+
+
+// YENİ FONKSİYON: Sokak Bazında İstatistikleri Getirir
+export const getStreetStats = async (req: Request, res: Response) => {
+  try {
+    
+    const pipeline: PipelineStage[] = [ // ✅ PipelineStage importu ile hata çözüldü
+      // 1. Aşama: Veriyi gruplandır
+      {
+        $group: {
+          _id: '$location_details.street_name', // Sokak adına göre grupla
+          average_price: {
+            $avg: '$price' // Ortalama fiyatı hesapla
+          },
+          count: {
+            $sum: 1 
+          }
+        }
+      },
+      // 2. Aşama: Sıralama
+      {
+        $sort: {
+          count: -1, 
+          average_price: -1
+        }
+      },
+      // 3. Aşama: Limit
+      {
+        $limit: 20 
+      }
+    ];
+
+    // streetStats tipini de güvenli hale getirebiliriz:
+    interface StreetStatResult {
+        _id: string | null;
+        average_price: number;
+        count: number;
+    }
+
+    const streetStats = await Listing.aggregate<StreetStatResult>(pipeline);
+
+    // Eğer sokak adı null veya boşsa, bunu "Diğer/Belirtilmemiş" olarak düzeltelim
+    const formattedStats = streetStats.map(stat => ({
+      street: stat._id || 'Diğer/Belirtilmemiş',
+      averagePrice: Math.round(stat.average_price), 
+      count: stat.count,
+    }));
+
+    res.status(200).json(formattedStats);
+  } catch (error) {
+    console.error('DEBUG HATA (getStreetStats): Sokak istatistikleri alınırken hata oluştu:', error);
+    res.status(500).json({ message: 'Sokak istatistikleri alınamadı', error });
+  }
 };
