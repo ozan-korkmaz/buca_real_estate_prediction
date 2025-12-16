@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">{{ title }}</h1>
+    
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Hata Oluştu:</strong> {{ error }}
+        <p class="mt-2">Lütfen Node.js (SOA) API sunucunuzun çalışır durumda olduğundan ve doğru adreste bulunduğundan emin olun.</p>
+    </div>
+    {% elif street_data %}
+    <p class="lead">MongoDB Aggregation Pipeline sonuçları: En çok ilana sahip <strong>{{ street_data|length }}</strong> mahalle/sokak için ortalama fiyatlar.</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Mahalle/Sokak Adı</th>
+                    <th scope="col">Ortalama Fiyat</th>
+                    <th scope="col">İlan Sayısı</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in street_data %}
+                <tr>
+                    <th scope="row">{{ loop.index }}</th>
+                    <td>{{ stat.street }}</td>
+                    <td class="fw-bold text-success">{{ stat.averagePrice }}</td>
+                    <td>{{ stat.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        Analiz edilecek yeterli veri bulunamadı. Lütfen daha fazla ilan eklediğinizden emin olun.
+    </div>
+    {% endif %}
+
+    <a href="/" class="btn btn-secondary mt-4">Ana Sayfaya Dön</a>
+</div>
+{% endblock %}
