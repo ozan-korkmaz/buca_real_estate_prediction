@@ -183,13 +183,6 @@ MIT Lisansı
 
 ---
 
-## 📬 İletişim
-
-Geliştirici: **Ozan Korkmaz**
-E-posta: [ozankorkmaz.dev@gmail.com](mailto:ozankorkmaz.dev@gmail.com)
-GitHub: [https://github.com/ozan-korkmaz](https://github.com/ozan-korkmaz)
-
----
 
 ---
 
