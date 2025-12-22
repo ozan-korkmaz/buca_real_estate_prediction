@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package bucapackage;
+
+service BucaService {
+  // Fonksiyonumuz: Hızlı bir hesaplama ister, sonuç döner
+  rpc HizliFiyatHesapla (HesapRequest) returns (HesapResponse);
+}
+
+message HesapRequest {
+  float metrekare = 1;
+  int32 bina_yasi = 2;
+}
+
+message HesapResponse {
+  float tahmini_fiyat = 1;
+  string mesaj = 2;
+}
