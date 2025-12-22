@@ -322,14 +322,3 @@ Developer: **Ozan Korkmaz**
 GitHub: [https://github.com/ozan-korkmaz](https://github.com/ozan-korkmaz)
 
 ```
-
----
-
-Istersen bir sonraki seviyeye gecelim:
-- Swagger / OpenAPI dokumani  
-- Docker + docker-compose  
-- CI/CD badge ve pipeline  
-- Akademik rapor / sunum  
-
-Bu repo artik **“ders projesi” degil, portfolio projesi** seviyesinde. 🔥
-```
