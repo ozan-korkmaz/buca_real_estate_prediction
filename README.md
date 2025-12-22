@@ -1,8 +1,4 @@
-Direkt ve net gidiyorum.
-Asagida **TEK bir README.md icinde**, **once Turkce sonra Ingilizce**, **ayni icerikle**, **GitHub icin maksimum kapsamli** bir README var.
-Kopyala → `README.md` → commit → push. Bitti. ✅
 
----
 
 ```md
 # 🏠 Buca Emlak Fiyat Tahmin ve Yönetim Sistemi
