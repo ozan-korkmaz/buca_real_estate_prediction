@@ -18,7 +18,6 @@ USERS_API_URL = "http://localhost:5001/api/users"
 
 # --- YARDIMCI FONKSİYONLAR ---
 def decode_token(token: str):
-    """Token'ı çözer ve payload'u döndürür."""
     try:
         if not token: return None
         if token.startswith("Bearer "):
@@ -42,7 +41,6 @@ def get_clean_id(obj_or_str):
     return str(obj_or_str)
 
 def get_auth_header(token: str):
-    """Backend'in beklediği Bearer formatında header oluşturur."""
     if not token:
         return {}
     if token.startswith("Bearer "):
@@ -67,7 +65,6 @@ def load_neighborhoods():
         {"_id": {"$oid": "692edc7ba7b9834d54d6aa5c"}, "name": "Adatepe Mahallesi", "slug": "adatepe"},
         {"_id": {"$oid": "692edd34a7b9834d54d6aa60"}, "name": "Tınaztepe Mahallesi", "slug": "tinaztepe"},
         {"_id": {"$oid": "692edd46a7b9834d54d6aa61"}, "name": "Efeler Mahallesi", "slug": "efeler"},
-        {"_id": {"$oid": "69301f30f9a575e1e6fb0967"}, "name": "Adatepe Mahallesi (Tekrar)"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0989"}, "name": "Yıldız Mahallesi", "slug": "yildiz"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0981"}, "name": "Şirinyer Mahallesi", "slug": "sirinyer"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0980"}, "name": "Buca Merkez", "slug": "merkez"},
@@ -97,7 +94,7 @@ async def index_page(request: Request):
         if response.status_code == 200:
             all_listings = response.json().get("data", [])
             
-            # --- AGENT FİLTRELEME ---
+            # Agent filtresi
             if user_role == 'agent' and decoded:
                 my_agency_name = decoded.get("agency_name")
                 my_user_id = decoded.get("sub") or decoded.get("id")
@@ -143,7 +140,7 @@ async def create_listing_page(request: Request):
         "neighborhoods": load_neighborhoods()
     })
 
-# --- 3. İLAN KAYDETME (CREATE POST) [DÜZELTİLDİ: Bearer Token Eklendi] ---
+# --- 3. İLAN KAYDETME (CREATE POST) ---
 @router.post("/create")
 async def create_listing_submit(
         request: Request,
@@ -194,7 +191,6 @@ async def create_listing_submit(
     if extras:
         final_description += "\n\n--- Diğer Özellikler ---\n" + "\n".join(extras)
 
-    # --- DÜZELTME BURADA: Auth Header ---
     headers = get_auth_header(token)
     
     payload = {
@@ -320,7 +316,6 @@ async def add_comment(request: Request, id: str, rating: int = Form(...), conten
     if not decoded or decoded.get("role") != 'user':
         return RedirectResponse(url=f"/listings/{id}", status_code=303)
 
-    # --- DÜZELTME BURADA: Auth Header ---
     headers = get_auth_header(token)
     
     payload = {"listing_id": id, "user_id": decoded.get("sub") or decoded.get("id"), "content": content, "rating": rating}
@@ -334,7 +329,7 @@ async def edit_listing_page(request: Request, id: str):
     token = request.cookies.get("access_token")
     decoded = decode_token(token)
 
-    # 1. Giriş Kontrolü
+    # 1 Giris kontrolu
     if not token or not decoded or decoded.get("role") != 'agent':
         return RedirectResponse(url=f"/listings/{id}", status_code=303)
 
@@ -343,7 +338,6 @@ async def edit_listing_page(request: Request, id: str):
     neighborhoods = load_neighborhoods()
 
     try:
-        # İlan verisini çek
         response = requests.get(f"{API_URL}/{id}")
         if response.status_code == 200:
             data = response.json().get("data", {})
@@ -355,8 +349,6 @@ async def edit_listing_page(request: Request, id: str):
             if current_agency != listing_agency:
                 return RedirectResponse(url=f"/listings/{id}?error=Yetkisiz_Islem", status_code=303)
 
-            # Veriyi form yapısına uydur (Mapping)
-            # Description içindeki "--- Diğer Özellikler ---" kısmını temizleyebiliriz
             clean_desc = data.get("description", "").split("\n\n--- Diğer Özellikler ---")[0]
 
             listing_data = {
@@ -371,7 +363,7 @@ async def edit_listing_page(request: Request, id: str):
                 "floor": data.get("property_specs", {}).get("floor"),
                 "building_age": data.get("property_specs", {}).get("building_age"),
                 "heating_type": data.get("property_specs", {}).get("heating"),
-                # Diğer alanlar opsiyonel, description içinde parse edilebilir ama şimdilik boş bırakıyoruz
+
                 "total_floors": "", 
                 "hall_count": "", 
                 "bathroom_count": "",
@@ -409,7 +401,7 @@ async def edit_listing_submit(
     token = request.cookies.get("access_token")
     if not token: return RedirectResponse(url="/auth/login", status_code=303)
 
-    # Mahalle Adı
+    # Mahalle adi
     neighborhoods_data = load_neighborhoods()
     neighborhood_name = "Bilinmeyen Mahalle"
     for n in neighborhoods_data:
@@ -417,7 +409,7 @@ async def edit_listing_submit(
             neighborhood_name = n.get('name')
             break
 
-    # Headers (Bearer Token)
+    # Headers bearer token var
     headers = get_auth_header(token)
 
     payload = {
@@ -435,18 +427,15 @@ async def edit_listing_submit(
         },
         "location_details": {
             "street_name": neighborhood_name
-            # Koordinatları ellemiyoruz
         }
     }
 
     try:
-        # PUT İsteği
         response = requests.put(f"{API_URL}/{id}", json=payload, headers=headers)
         
         if response.status_code == 200:
             return RedirectResponse(url=f"/listings/{id}", status_code=303)
         else:
-            # Hata durumunda edit sayfasına geri dön
             print(f"Güncelleme Hatası: {response.text}")
             return templates.TemplateResponse("listings/edit.html", {
                 "request": request,

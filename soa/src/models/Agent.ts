@@ -34,5 +34,4 @@ AgentSchema.set('toJSON', {
     }
 });
 
-// 🔹 Agents koleksiyonu
 export default mongoose.model<IAgent>('Agent', AgentSchema, 'Agents');

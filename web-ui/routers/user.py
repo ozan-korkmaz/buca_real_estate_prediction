@@ -67,7 +67,6 @@ async def profile_edit(
     return RedirectResponse("/profile?msg=Profil_guncellendi", status_code=302)
 
 
-# Ayrıca şifre değiştirme post rotasını da ekleyelim (Opsiyonel)
 @router.post("/change-password")
 async def change_password(
     request: Request,
@@ -85,7 +84,6 @@ async def change_password(
         msg = "Şifre en az 8 karakter olmalıdır."
     else:
         try:
-            # Şifre değiştirme API çağrısı
             async with httpx.AsyncClient(base_url=API_BASE_URL) as client:
                 response = await client.post(
                     f"/auth/change-password", # Veya API'nizin şifre değiştirme rotası
@@ -97,7 +95,7 @@ async def change_password(
                 )
                 response.raise_for_status() 
                 msg = "Şifreniz başarıyla değiştirildi. Lütfen tekrar giriş yapın."
-                # Şifre değiştiği için kullanıcıyı logout yap
+                # logout yap
                 return RedirectResponse(url="/auth/logout", status_code=status.HTTP_302_FOUND)
 
         except httpx.HTTPStatusError as e:
@@ -110,7 +108,7 @@ async def change_password(
         except Exception as e:
             msg = f"Bir hata oluştu: {str(e)}"
 
-    # Hata durumunda tekrar profil sayfasına yönlendir
+    # hata tekrar profil sayfasına yönlendir
     return templates.TemplateResponse(
         "profile/view.html",
         {

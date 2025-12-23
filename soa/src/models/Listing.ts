@@ -39,7 +39,6 @@ const ListingSchema: Schema = new Schema(
         status: { type: String, default: 'active' },
         tags: [{ type: String }],
 
-        // Özellikler (property_specs)
         property_specs: {
             gross_m2: { type: Number },
             net_m2: { type: Number },
@@ -49,7 +48,6 @@ const ListingSchema: Schema = new Schema(
             building_age: { type: Number, required: true }
         },
 
-        // Konum
         location_details: {
             street_name: { type: String },
             site_name: { type: String },

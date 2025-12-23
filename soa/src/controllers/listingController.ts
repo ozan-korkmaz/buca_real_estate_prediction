@@ -17,10 +17,8 @@ export const getListings = async (req: Request, res: Response) => {
 
 export const createListing = async (req: AuthRequest, res: Response) => {
     try {
-        // req.user.id artık type-safe olmalı (auth.ts'de IUserDocument ile tanımlandı)
         const newListing = new Listing({
             ...req.body,
-            // req.user varlığını ve içindeki id alanını biliyoruz
             user: req.user!.id, 
             agency_name: req.user!.agency_name || "Bireysel"
         });
@@ -56,7 +54,8 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
             return res.status(404).json({ status: 'error', message: 'İlan bulunamadı.' });
         }
 
-        const requesterAgency = req.user!.agency_name; // ! ile req.user'ın var olduğunu varsayıyoruz (protect middleware'dan geldi)
+        // ! ile req.user'ın var olduğunu varsayıyoruz (protect middleware'dan geldi)
+        const requesterAgency = req.user!.agency_name; 
         
         const isAgencyMatch = listing.agency_name && listing.agency_name === requesterAgency;
         const isUserMatch = listing.user && String(listing.user) === req.user!.id;
@@ -74,14 +73,28 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
     }
 };
 
+// User Defined Function UDF 
+const trackPriceChange = async (listing: any, newPrice?: number) => {
+    if (!newPrice) return;
 
-// --- UPDATE (GÜNCELLENDİ - OFİS KONTROLÜ + PRICE HISTORY UDF) ---
+    if (Number(newPrice) !== listing.price) {
+        console.log(`UDF: Price change detected ${listing.price} -> ${newPrice}`);
+
+        await PriceHistory.create({
+            listing_id: listing._id,
+            old_price: listing.price,
+            new_price: Number(newPrice),
+            change_date: new Date()
+        });
+    }
+};
+
 export const updateListing = async (req: AuthRequest, res: Response) => {
     try {
         const listing = await Listing.findById(req.params.id);
 
         if (!listing) {
-            return res.status(404).json({ status: 'error', message: 'İlan bulunamadı.' });
+            return res.status(404).json({ status: 'error', message: 'Ilan bulunamadi.' });
         }
 
         const requesterAgency = req.user!.agency_name;
@@ -89,22 +102,11 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
         const isUserMatch = listing.user && String(listing.user) === req.user!.id;
 
         if (!isAgencyMatch && !isUserMatch) {
-            return res.status(403).json({ status: 'error', message: 'Bu ilanı düzenleme yetkiniz yok.' });
+            return res.status(403).json({ status: 'error', message: 'Bu ilani duzenleme yetkiniz yok.' });
         }
 
-        // --- USER DEFINED FUNCTION (PRICE CHANGE TRACKER) ---
-        // İstekte yeni bir fiyat varsa ve mevcut fiyattan farklıysa geçmişe kaydet
-        if (req.body.price && Number(req.body.price) !== listing.price) {
-            console.log(`💰 UDF: Fiyat değişimi kaydediliyor... ${listing.price} -> ${req.body.price}`);
-            
-            await PriceHistory.create({
-                listing_id: listing._id,
-                old_price: listing.price,
-                new_price: Number(req.body.price),
-                change_date: new Date()
-            });
-        }
-        // ----------------------------------------------------
+        // UDF işlemi 
+        await trackPriceChange(listing, req.body.price);
 
         const updatedListing = await Listing.findByIdAndUpdate(
             req.params.id,
@@ -114,48 +116,52 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
 
         res.status(200).json({
             status: 'success',
-            message: 'İlan güncellendi ve fiyat geçmişi kaydedildi.',
+            message: 'Ilan guncellendi ve price history kaydedildi.',
             data: updatedListing
         });
 
     } catch (error: any) {
-        console.error('DEBUG HATA (updateListing):', error);
-        res.status(500).json({ status: 'error', message: 'Güncelleme başarısız.', error: error.message });
+        console.error('DEBUG ERROR (updateListing):', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Update failed.',
+            error: error.message
+        });
     }
 };
 
 
-// YENİ FONKSİYON: Sokak Bazında İstatistikleri Getirir
+// Sokok bazlı istatistikler fonksiyonu
 export const getStreetStats = async (req: Request, res: Response) => {
   try {
     
-    const pipeline: PipelineStage[] = [ // ✅ PipelineStage importu ile hata çözüldü
-      // 1. Aşama: Veriyi gruplandır
+    const pipeline: PipelineStage[] = [ 
+      // 1 Veriyi gruplandır
       {
         $group: {
-          _id: '$location_details.street_name', // Sokak adına göre grupla
+          _id: '$location_details.street_name', // sokak adına göre grupla
           average_price: {
-            $avg: '$price' // Ortalama fiyatı hesapla
+            $avg: '$price' // ortalama fiyatı hesapla
           },
           count: {
             $sum: 1 
           }
         }
       },
-      // 2. Aşama: Sıralama
+      // 2 Sıralama
       {
         $sort: {
           count: -1, 
           average_price: -1
         }
       },
-      // 3. Aşama: Limit
+      // 3 Limit
       {
         $limit: 20 
       }
     ];
 
-    // streetStats tipini de güvenli hale getirebiliriz:
+    
     interface StreetStatResult {
         _id: string | null;
         average_price: number;
@@ -164,7 +170,7 @@ export const getStreetStats = async (req: Request, res: Response) => {
 
     const streetStats = await Listing.aggregate<StreetStatResult>(pipeline);
 
-    // Eğer sokak adı null veya boşsa, bunu "Diğer/Belirtilmemiş" olarak düzeltelim
+    // sokak adi null veya bossa Diğer/Belirtilmemiş olarak varsayıyoruz
     const formattedStats = streetStats.map(stat => ({
       street: stat._id || 'Diğer/Belirtilmemiş',
       averagePrice: Math.round(stat.average_price), 

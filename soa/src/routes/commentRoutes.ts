@@ -3,10 +3,7 @@ import { getListingComments, createComment } from '../controllers/commentControl
 
 const router = express.Router();
 
-// Yorumları Getir
 router.get('/', getListingComments); 
-
-// YENİ EKLENEN: Yorum Kaydet
 router.post('/', createComment);
 
 export default router;

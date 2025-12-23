@@ -29,7 +29,7 @@ export const register = async (req: Request, res: Response) => {
 
         const fullName = `${first_name} ${last_name}`.trim();
 
-        // 🟢 BİREYSEL → Users
+        // BİREYSEL => Users
         if (account_type === 'individual') {
             const existingUser = await User.findOne({ email });
             if (existingUser) {
@@ -53,7 +53,7 @@ export const register = async (req: Request, res: Response) => {
             });
         }
 
-        // 🟠 TİCARİ → Agents
+        // TİCARİ => Agents
         if (account_type === 'commercial') {
             if (!agency_name || !title || !address || !phone) {
                 return res.status(400).json({
@@ -114,7 +114,7 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        // ---------------- BİREYSEL GİRİŞ (Users) ----------------
+        // Bireysel Giriş
         if (account_type === 'individual') {
             // email + password ile direkt sorgu
             const user = await User.findOne({ email, password });
@@ -143,7 +143,7 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        // ---------------- TİCARİ GİRİŞ (Agents) ----------------
+        // Ticari Giriş
         if (account_type === 'commercial') {
             const agent = await Agent.findOne({ email, password });
 

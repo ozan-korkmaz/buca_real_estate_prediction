@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions
+  name="ListingService"
+  targetNamespace="http://example.com/listing"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:tns="http://example.com/listing"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <types>
+    <xsd:schema targetNamespace="http://example.com/listing">
+
+      <xsd:element name="GetListingByIdRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="listingId" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="GetListingByIdResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="title" type="xsd:string"/>
+            <xsd:element name="price" type="xsd:double"/>
+            <xsd:element name="street" type="xsd:string" nillable="true" minOccurs="0"/> 
+            <xsd:element name="description" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+    </xsd:schema>
+  </types>
+
+  <message name="GetListingByIdInput">
+    <part name="parameters" element="tns:GetListingByIdRequest"/>
+  </message>
+
+  <message name="GetListingByIdOutput">
+    <part name="parameters" element="tns:GetListingByIdResponse"/>
+  </message>
+
+  <portType name="ListingPortType">
+    <operation name="GetListingById">
+      <input message="tns:GetListingByIdInput"/>
+      <output message="tns:GetListingByIdOutput"/>
+    </operation>
+  </portType>
+
+  <binding name="ListingBinding" type="tns:ListingPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="GetListingById">
+      <soap:operation soapAction="getListingById"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+  </binding>
+
+  <service name="ListingService">
+    <port name="ListingPort" binding="tns:ListingBinding">
+      <soap:address location="http://localhost:5001/soap/listing"/>
+    </port>
+  </service>
+
+</definitions>

@@ -5,25 +5,19 @@ from fastapi.responses import HTMLResponse
 import requests
 import json
 
-# Node.js API'nin çalıştığı adresi environment variable'dan alıyoruz
 API_BASE_URL = os.getenv("SOA_API_URL", "http://localhost:5001/api")
 
 router = APIRouter(tags=["Stats"])
 templates = Jinja2Templates(directory="templates")
 
-# Fiyatı binlik ayraçlar ve TL formatında gösteren yardımcı fonksiyon
 def format_currency(value):
     try:
-        # Fiyatı tam sayıya çevirip formatla (örneğin 1.234.567 TL)
         return f"{int(value):,}".replace(",", "X").replace(".", ",").replace("X", ".") + " TL"
     except (TypeError, ValueError):
         return "N/A"
 
 @router.get("/stats/street", response_class=HTMLResponse)
 async def street_stats_page(request: Request):
-    """
-    Sokak bazında ortalama fiyat istatistiklerini Node.js API'den çeker ve görüntüler.
-    """
     endpoint = f"{API_BASE_URL}/listings/stats/street"
     street_data = []
     error_message = None
@@ -34,7 +28,6 @@ async def street_stats_page(request: Request):
         
         data = response.json()
         
-        # 🚨 KRİTİK DÜZELTME BURADA: API'den gelen anahtarlar 'street' ve 'averagePrice'
         street_data = [
             {
                 "street": stat["street"] if stat["street"] != 'Diğer/Belirtilmemiş' else format_currency("Diğer/Belirtilmemiş"),

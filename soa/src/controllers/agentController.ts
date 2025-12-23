@@ -1,4 +1,3 @@
-// soa/src/controllers/agentController.ts
 import { Request, Response } from 'express';
 import  Agent  from '../models/Agent'; 
 import mongoose from 'mongoose';
@@ -20,7 +19,7 @@ export const getAgentById = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        // Başarılı yanıt: Agent verisini döndür
+        // başarılı yanıt agent verisini döndür
         res.status(200).json({ status: 'success', data: agent });
 
     } catch (error) {
