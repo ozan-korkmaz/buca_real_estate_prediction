@@ -1,11 +1,9 @@
-// soa/src/controllers/listingController.ts
 
 import { Request, Response } from 'express';
-// Gerekli tipleri mongoose'tan import ediyoruz
 import { PipelineStage } from 'mongoose'; 
 import Listing from '../models/Listing';
-// auth.ts'den genişlettiğimiz AuthRequest tipini import ediyoruz
 import { AuthRequest } from '../middleware/auth'; 
+import PriceHistory from '../models/PriceHistory';
 
 
 export const getListings = async (req: Request, res: Response) => {
@@ -76,7 +74,8 @@ export const deleteListing = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// --- UPDATE (GÜNCELLENDİ - OFİS KONTROLÜ) ---
+
+// --- UPDATE (GÜNCELLENDİ - OFİS KONTROLÜ + PRICE HISTORY UDF) ---
 export const updateListing = async (req: AuthRequest, res: Response) => {
     try {
         const listing = await Listing.findById(req.params.id);
@@ -93,6 +92,20 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
             return res.status(403).json({ status: 'error', message: 'Bu ilanı düzenleme yetkiniz yok.' });
         }
 
+        // --- USER DEFINED FUNCTION (PRICE CHANGE TRACKER) ---
+        // İstekte yeni bir fiyat varsa ve mevcut fiyattan farklıysa geçmişe kaydet
+        if (req.body.price && Number(req.body.price) !== listing.price) {
+            console.log(`💰 UDF: Fiyat değişimi kaydediliyor... ${listing.price} -> ${req.body.price}`);
+            
+            await PriceHistory.create({
+                listing_id: listing._id,
+                old_price: listing.price,
+                new_price: Number(req.body.price),
+                change_date: new Date()
+            });
+        }
+        // ----------------------------------------------------
+
         const updatedListing = await Listing.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -101,7 +114,7 @@ export const updateListing = async (req: AuthRequest, res: Response) => {
 
         res.status(200).json({
             status: 'success',
-            message: 'İlan güncellendi.',
+            message: 'İlan güncellendi ve fiyat geçmişi kaydedildi.',
             data: updatedListing
         });
 
