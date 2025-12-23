@@ -25,8 +25,9 @@ if _version_not_supported:
     )
 
 
-class BucaServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+class RealEstateServiceStub(object):
+    """Servis Tanımı
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -34,44 +35,45 @@ class BucaServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.HizliFiyatHesapla = channel.unary_unary(
-                '/bucapackage.BucaService/HizliFiyatHesapla',
-                request_serializer=buca__pb2.HesapRequest.SerializeToString,
-                response_deserializer=buca__pb2.HesapResponse.FromString,
+        self.PredictPrice = channel.unary_unary(
+                '/RealEstateService/PredictPrice',
+                request_serializer=buca__pb2.PredictionRequest.SerializeToString,
+                response_deserializer=buca__pb2.PredictionResponse.FromString,
                 _registered_method=True)
 
 
-class BucaServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+class RealEstateServiceServicer(object):
+    """Servis Tanımı
+    """
 
-    def HizliFiyatHesapla(self, request, context):
-        """Fonksiyonumuz: Hızlı bir hesaplama ister, sonuç döner
-        """
+    def PredictPrice(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_BucaServiceServicer_to_server(servicer, server):
+def add_RealEstateServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'HizliFiyatHesapla': grpc.unary_unary_rpc_method_handler(
-                    servicer.HizliFiyatHesapla,
-                    request_deserializer=buca__pb2.HesapRequest.FromString,
-                    response_serializer=buca__pb2.HesapResponse.SerializeToString,
+            'PredictPrice': grpc.unary_unary_rpc_method_handler(
+                    servicer.PredictPrice,
+                    request_deserializer=buca__pb2.PredictionRequest.FromString,
+                    response_serializer=buca__pb2.PredictionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'bucapackage.BucaService', rpc_method_handlers)
+            'RealEstateService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('bucapackage.BucaService', rpc_method_handlers)
+    server.add_registered_method_handlers('RealEstateService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class BucaService(object):
-    """Missing associated documentation comment in .proto file."""
+class RealEstateService(object):
+    """Servis Tanımı
+    """
 
     @staticmethod
-    def HizliFiyatHesapla(request,
+    def PredictPrice(request,
             target,
             options=(),
             channel_credentials=None,
@@ -84,9 +86,9 @@ class BucaService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/bucapackage.BucaService/HizliFiyatHesapla',
-            buca__pb2.HesapRequest.SerializeToString,
-            buca__pb2.HesapResponse.FromString,
+            '/RealEstateService/PredictPrice',
+            buca__pb2.PredictionRequest.SerializeToString,
+            buca__pb2.PredictionResponse.FromString,
             options,
             channel_credentials,
             insecure,

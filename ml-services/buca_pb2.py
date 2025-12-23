@@ -24,17 +24,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nbuca.proto\x12\x0b\x62ucapackage\"4\n\x0cHesapRequest\x12\x11\n\tmetrekare\x18\x01 \x01(\x02\x12\x11\n\tbina_yasi\x18\x02 \x01(\x05\"5\n\rHesapResponse\x12\x15\n\rtahmini_fiyat\x18\x01 \x01(\x02\x12\r\n\x05mesaj\x18\x02 \x01(\t2Y\n\x0b\x42ucaService\x12J\n\x11HizliFiyatHesapla\x12\x19.bucapackage.HesapRequest\x1a\x1a.bucapackage.HesapResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nbuca.proto\"\xf2\x01\n\x11PredictionRequest\x12\x12\n\nroom_count\x18\x01 \x01(\x05\x12\x12\n\nhall_count\x18\x02 \x01(\x05\x12\x10\n\x08net_area\x18\x03 \x01(\x02\x12\r\n\x05\x66loor\x18\x04 \x01(\x05\x12\x14\n\x0ctotal_floors\x18\x05 \x01(\x05\x12\x14\n\x0c\x62uilding_age\x18\x06 \x01(\x05\x12\x16\n\x0e\x62\x61throom_count\x18\x07 \x01(\x05\x12\x10\n\x08location\x18\x08 \x01(\t\x12\x14\n\x0cheating_type\x18\t \x01(\t\x12\x12\n\nfurnishing\x18\n \x01(\t\x12\x14\n\x0cusage_status\x18\x0b \x01(\t\"-\n\x12PredictionResponse\x12\x17\n\x0fpredicted_price\x18\x01 \x01(\x02\x32L\n\x11RealEstateService\x12\x37\n\x0cPredictPrice\x12\x12.PredictionRequest\x1a\x13.PredictionResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'buca_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_HESAPREQUEST']._serialized_start=27
-  _globals['_HESAPREQUEST']._serialized_end=79
-  _globals['_HESAPRESPONSE']._serialized_start=81
-  _globals['_HESAPRESPONSE']._serialized_end=134
-  _globals['_BUCASERVICE']._serialized_start=136
-  _globals['_BUCASERVICE']._serialized_end=225
+  _globals['_PREDICTIONREQUEST']._serialized_start=15
+  _globals['_PREDICTIONREQUEST']._serialized_end=257
+  _globals['_PREDICTIONRESPONSE']._serialized_start=259
+  _globals['_PREDICTIONRESPONSE']._serialized_end=304
+  _globals['_REALESTATESERVICE']._serialized_start=306
+  _globals['_REALESTATESERVICE']._serialized_end=382
 # @@protoc_insertion_point(module_scope)
