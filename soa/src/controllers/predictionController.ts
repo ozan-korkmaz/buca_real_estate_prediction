@@ -1,46 +1,49 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
+import client from '../grpcClient';
 
 export const predictPrice = async (req: Request, res: Response) => {
     try {
         const houseData = req.body;
-        console.log('🤖 ML Servisine Giden Veri:', houseData);
+        console.log('🤖 ML Servisine (gRPC) Giden Veri:', houseData);
 
-        // 1. Python API'ye istek at
-        // (Python'dan sadece {"predicted_price": 3500000} gibi saf bir cevap bekliyoruz)
-        const response = await axios.post(process.env.ML_API_URL as string, houseData);
+        // Axios (HTTP) yerine gRPC Call kullanıyoruz
+        client.PredictPrice(houseData, (error: any, response: any) => {
+            if (error) {
+                console.error('❌ gRPC Hatası:', error);
+                return res.status(503).json({
+                    status: 'error',
+                    message: 'gRPC servisine ulaşılamadı.'
+                });
+            }
 
-        const predictionResult = response.data;
-        const price = predictionResult.predicted_price;
+            // Python gRPC'den gelen saf fiyat
+            const price = response.predicted_price;
 
-        // 2. Fiyat Aralığı Hesapla (Örn: %3 aşağısı ve %3 yukarısı)
-        // Eğer Python servisi zaten min/max dönmüyorsa biz oluşturuyoruz.
-        const margin = 0.03; // %3 sapma payı
-        const minPrice = Math.floor(price * (1 - margin));
-        const maxPrice = Math.ceil(price * (1 + margin));
+            // Fiyat Aralığı Hesapla (%3 kuralın devam ediyor)
+            const margin = 0.03;
+            const minPrice = Math.floor(price * (1 - margin));
+            const maxPrice = Math.ceil(price * (1 + margin));
 
-        // 3. İstenen Response Formatını Hazırla
-        const finalResponse = {
-            predicted_price: price,
-            price_range: {
-                min: minPrice,
-                max: maxPrice
-            },
-            currency: "TRY"
-        };
+            const finalResponse = {
+                predicted_price: price,
+                price_range: {
+                    min: minPrice,
+                    max: maxPrice
+                },
+                currency: "TRY"
+            };
 
-        console.log('✅ Hesaplanmış Yanıt:', finalResponse);
+            console.log("✅ gRPC'den Gelen ve Hesaplanan Yanıt:", finalResponse);
 
-        res.status(200).json({
-            status: 'success',
-            data: finalResponse
+            res.status(200).json({
+                status: 'success',
+                data: finalResponse
+            });
         });
 
     } catch (error: any) {
         console.error('❌ ML Servis Hatası:', error.message);
-        res.status(503).json({
-            status: 'error',
-            message: 'Tahmin servisine ulaşılamadı veya model yüklenemedi.'
-        });
+        res.status(500).json({ status: 'error', message: 'İşlem sırasında hata oluştu.' });
     }
 };

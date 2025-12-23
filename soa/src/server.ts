@@ -6,7 +6,7 @@ import cors from 'cors';
 import { connectDB } from './config/db';
 
 import { initSoapService } from './soapService';
-import { grpcClient } from './grpcClient';
+import  grpcClient from './grpcClient';
 
 import authRoutes from './routes/authRoutes';
 import listingRoutes from './routes/listingRoutes';
