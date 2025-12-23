@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Comment } from '../models/Comment';
 import mongoose from 'mongoose';
 
-// Yorumları Listele
+// Yorumları listele
 export const getListingComments = async (req: Request, res: Response): Promise<void> => {
     try {
         const { listing_id } = req.query;
@@ -22,8 +22,6 @@ export const getListingComments = async (req: Request, res: Response): Promise<v
             };
         }
 
-        // DEĞİŞİKLİK BURADA: .populate('user_id', 'name') eklendi.
-        // Bu komut, 'user_id' alanındaki ID'yi alıp User tablosuna gider ve 'name' bilgisini getirir.
         const comments = await Comment.find(query)
             .populate('user_id', 'name email') // User tablosundan 'name' ve 'email' alanlarını çek
             .sort({ created_at: -1 })
@@ -52,7 +50,7 @@ export const createComment = async (req: Request, res: Response): Promise<void> 
         const newComment = new Comment({
             listing_id,
             user_id,
-            text: content, // Modelde 'text', formda 'content'
+            text: content, // modelde text ama formda content
             rating,
             created_at: new Date()
         });

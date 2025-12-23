@@ -26,12 +26,10 @@ def decode_token(token: str):
     except: return None
 
 def load_neighborhoods():
-    # Listings.py ile aynı liste
     return [
         {"_id": {"$oid": "692edc7ba7b9834d54d6aa5c"}, "name": "Adatepe Mahallesi", "slug": "adatepe"},
         {"_id": {"$oid": "692edd34a7b9834d54d6aa60"}, "name": "Tınaztepe Mahallesi", "slug": "tinaztepe"},
         {"_id": {"$oid": "692edd46a7b9834d54d6aa61"}, "name": "Efeler Mahallesi", "slug": "efeler"},
-        {"_id": {"$oid": "69301f30f9a575e1e6fb0967"}, "name": "Adatepe Mahallesi (Tekrar)"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0989"}, "name": "Yıldız Mahallesi", "slug": "yildiz"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0981"}, "name": "Şirinyer Mahallesi", "slug": "sirinyer"},
         {"_id": {"$oid": "69301f30f9a575e1e6fb0980"}, "name": "Buca Merkez", "slug": "merkez"},
@@ -52,25 +50,23 @@ async def estimate_page(request: Request):
     token = request.cookies.get("access_token")
     decoded = decode_token(token)
     
-    # Güvenlik: Sadece Agent girebilir
+    # Sadece agent girebilir onun kontrolü
     if not token or not decoded:
         return RedirectResponse(url="/auth/login", status_code=303)
     
     if decoded.get("role") != 'agent':
         return RedirectResponse(url="/listings?error=Yetkisiz_Erisim", status_code=303)
     
-    # HATA ÇÖZÜMÜ: prefill ve neighborhoods değişkenlerini şablona gönderiyoruz
     return templates.TemplateResponse("prediction/form.html", {
         "request": request,
-        "prefill": dict(request.query_params), # Formun veri bekleme hatasını çözer
-        "neighborhoods": load_neighborhoods()  # Mahalle listesini doldurur
+        "prefill": dict(request.query_params), 
+        "neighborhoods": load_neighborhoods()  
     })
 
 # --- TAHMİN SONUCU (POST) ---
 @router.post("/estimate")
 async def estimate_price_result(
         request: Request,
-        # Formdan gelen alanlar (create.html ile uyumlu hale getirildi)
         location: str = Form(...),
         room_count: int = Form(...),
         hall_count: int = Form(1),

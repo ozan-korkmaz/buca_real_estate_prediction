@@ -3,8 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IComment extends Document {
     listing_id: mongoose.Types.ObjectId;
     user_id: mongoose.Types.ObjectId;
-    text: string; // Yorum metni
-    rating: number; // Yıldız puanı
+    text: string; 
+    rating: number; 
     created_at: Date;
 }
 

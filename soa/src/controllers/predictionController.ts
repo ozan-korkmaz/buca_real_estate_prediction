@@ -7,7 +7,6 @@ export const predictPrice = async (req: Request, res: Response) => {
         const houseData = req.body;
         console.log('🤖 ML Servisine (gRPC) Giden Veri:', houseData);
 
-        // Axios (HTTP) yerine gRPC Call kullanıyoruz
         client.PredictPrice(houseData, (error: any, response: any) => {
             if (error) {
                 console.error('❌ gRPC Hatası:', error);
@@ -17,10 +16,10 @@ export const predictPrice = async (req: Request, res: Response) => {
                 });
             }
 
-            // Python gRPC'den gelen saf fiyat
+            // python gRPC'den gelen saf fiyat
             const price = response.predicted_price;
 
-            // Fiyat Aralığı Hesapla (%3 kuralın devam ediyor)
+            // fiyat arslığı hesapla 
             const margin = 0.03;
             const minPrice = Math.floor(price * (1 - margin));
             const maxPrice = Math.ceil(price * (1 + margin));

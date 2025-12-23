@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi import Request, HTTPException, status
 import jwt
 import os
-import urllib.parse  # 1. GEREKLİ KÜTÜPHANE EKLENDİ
+import urllib.parse  
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 
@@ -44,17 +44,12 @@ async def login_submit(
             token = data.get("access_token")
             role = data.get("role")
             
-            # --- TÜRKÇE KARAKTER SORUNU ÇÖZÜMÜ ---
-            # İsim verisi bazen None gelebilir, o yüzden "Kullanıcı" varsayılanı atıyoruz
             raw_name = data.get("user_name") or "Kullanıcı"
             
-            # 2. İsmi URL-Encode yapıyoruz (Örn: "Ahmet Yılmaz" -> "Ahmet%20Y%C4%B1lmaz")
-            # Böylece cookie'ye yazarken Türkçe karakter hatası vermez.
             safe_user_name = urllib.parse.quote(raw_name)
 
             redirect = RedirectResponse(url="/listings", status_code=303)
             
-            # Cookie'leri ayarla
             redirect.set_cookie("access_token", token, httponly=True)
             redirect.set_cookie("user_role", role)
             redirect.set_cookie("user_name", safe_user_name) # 3. Güvenli ismi yaz
@@ -88,7 +83,7 @@ async def register_submit(
     password: str = Form(...),
     phone: str = Form(...),
     account_type: str = Form(...),
-    # Opsiyonel Alanlar (Sadece Emlakçılar İçin)
+
     agency_name: str = Form(None),
     title: str = Form(None),
     address: str = Form(None)

@@ -1,19 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Document } from 'mongoose';
-// Agent ve User modellerini import ediyoruz
+
 import User from "../models/User";
 import Agent from "../models/Agent"; 
 
 
-// 1. TİP TANIMLAMALARI: User ve Agent'ların ortak taşıdığı alanları tanımlıyoruz
 interface IUserDocument extends Document {
-    id: string; // ListingController'ın kullandığı alan
+    id: string; 
     email: string;
     role: string;
     name: string;
     phone?: string; 
-    agency_name?: string; // ListingController'ın kullandığı alan
+    agency_name?: string; 
 }
 
 interface DecodedToken extends JwtPayload {
@@ -21,7 +20,6 @@ interface DecodedToken extends JwtPayload {
     id?: string;  
 }
 
-// Request tipini genişletiyoruz (UserController'daki TSError'ı engeller)
 export interface AuthRequest extends Request {
     user?: IUserDocument; 
 }
@@ -32,7 +30,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     let user: IUserDocument | null = null;
     let userId: string | undefined;
 
-    // 1. Token'ı Header'dan al
+    // 1 tokeni headerdan al
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
         try {
             token = req.headers.authorization.split(" ")[1];
@@ -93,4 +91,3 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     }
 };
 
-// ... Diğer restrictTo gibi fonksiyonlar
